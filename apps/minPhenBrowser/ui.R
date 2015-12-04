@@ -16,17 +16,21 @@ library(shiny)
 # ))
 
 shinyUI(pageWithSidebar(
-  headerPanel("Simple Genome Browser"),
+  headerPanel("Behavioral browser"),
   
   sidebarPanel(
     sliderInput("windowsize", 
                 "Windowsize:", 
-                min = 10,
-                max = 200,
-                value = 50,
-                step = 5),
-    uiOutput("idSelect")
+                min = 1000,
+                max = 1000000,
+                value =1000,
+                step = 300),
+    uiOutput("idSelect"),
+    uiOutput("genomicPositionSelect")
   ),
   
-  mainPanel("plot")
+  mainPanel(
+    textOutput("text1"),
+    plotOutput("barPlot", height=800)
+  )
 ))
