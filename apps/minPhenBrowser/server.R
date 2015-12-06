@@ -29,41 +29,41 @@ data_bed = do.call (rbind, lapply (list_files, y <- function (x) { data <- read.
 tail(data_bed)
 
 df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
-head (df.data_bed [which (df.data_bed$id==2),] )
-
+# head (df.data_bed [which (df.data_bed$id==2),] )
+# 
 colnames (df.data_bed) <- c("id", "chrom", "startChrom", "endChrom", "V4", "value", "strand", "V7", "V8", "V9", "group")
-
-ini_window <- 1000000
-end_window <- 1600000
+# 
+# ini_window <- 1000000
+# end_window <- 1600000
 
 # df.data_bed [which (df.data_bed$startChrom > max( 300 - input$windowsize, 0 ) & 
 #                       df.data_bed$endChrom < min( 300 + input$windowsize, max(df.data_bed$endChrom))),]
 
 # df.data_bed_filt <- df.data_bed [which (df.data_bed$startChrom > ini_window & df.data_bed$endChrom < end_window),]
-pos <- 569984
-input_windowsize <- 1000
-
-df.data_bed_filt <- df.data_bed [which (df.data_bed$startChrom > max( pos - input_windowsize, 0 ) & 
-                      df.data_bed$endChrom < min( pos + input_windowsize, max(df.data_bed$endChrom))),]
-head (df.data_bed_filt)
+# pos <- 569984
+# input_windowsize <- 1000
+# 
+# df.data_bed_filt <- df.data_bed [which (df.data_bed$startChrom > max( pos - input_windowsize, 0 ) & 
+#                       df.data_bed$endChrom < min( pos + input_windowsize, max(df.data_bed$endChrom))),]
+# head (df.data_bed_filt)
 # # # df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
 # # df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
 # df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), mean))
-df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
+# df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
 # class (df.mean_bad$value)
-df.mean_bad$mean <- df.mean_bad$value [,1]
-df.mean_bad$std.error <- df.mean_bad$value [,2]
+# df.mean_bad$mean <- df.mean_bad$value [,1]
+# df.mean_bad$std.error <- df.mean_bad$value [,2]
 # df.mean_bad$ymax <- df.mean_bad$mean + df.mean_bad$value [,2]
 # df.mean_bad$ymin <- df.mean_bad$mean - df.mean_bad$value [,2]
 
 # with (data() , aggregate (cbind (value), list (group=group), mean))
-df.mean_bad$group
+# df.mean_bad$group
 
 # p = ggplot(data = df.mean_bad, aes(x=group, y=mean, fill=group)) +
 #     geom_bar(stat="identity", position=position_dodge()) +
 #     geom_errorbar(aes(ymin=mean-std.error, ymax=mean+std.error), width=.2, position=position_dodge(.9))
 
-p  
+# p  
 
 
 # ggplot(data=tbl_stat_mean, aes(x=index, y=mean, fill=group2)) + 
@@ -119,8 +119,10 @@ shinyServer(function(input, output) {
   })
 
   data <- reactive({
-    df.data_bed [which (df.data_bed$startChrom > max( pos() - input$windowsize, 0 ) & 
+    df.data_f <- df.data_bed [which (df.data_bed$startChrom > max( pos() - input$windowsize, 0 ) & 
                          df.data_bed$endChrom < min( pos() + input$windowsize, max(df.data_bed$endChrom))),]
+#     df.data_f$duration <- df.data_bed$endChrom - df.data_bed$startChrom
+    df.data_f
   })
   
   df_mean  <- reactive({
@@ -131,17 +133,16 @@ shinyServer(function(input, output) {
      
     df_t
   }) 
-
-    
   
   output$barPlot <- renderPlot({  
     p = ggplot(data = df_mean(), aes(x=group, y=mean, fill=group)) +
       geom_bar(stat="identity", position=position_dodge()) +
       geom_errorbar(aes(ymin=mean-std.error, ymax=mean+std.error), width=.2, position=position_dodge(.9)) +
-      labs (title = "Average intake\n")
+      labs (title = "Mean value\n") + 
+      labs (x = "\nMean value", y = "Group\n")
     
-
   print(p) 
   })  
+  
 })
   
