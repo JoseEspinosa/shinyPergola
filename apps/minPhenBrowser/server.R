@@ -32,6 +32,7 @@ df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
 # head (df.data_bed [which (df.data_bed$id==2),] )
 # 
 colnames (df.data_bed) <- c("id", "chrom", "startChrom", "endChrom", "V4", "value", "strand", "V7", "V8", "V9", "group")
+df.data_bed$duration <- df.data_bed$endChrom - df.data_bed$startChrom
 # 
 # ini_window <- 1000000
 # end_window <- 1600000
@@ -118,29 +119,40 @@ shinyServer(function(input, output) {
      paste (as.character (input$windowsize), as.character (pos()))
   })
 
-  data <- reactive({
+  data <- reactive({    
     df.data_f <- df.data_bed [which (df.data_bed$startChrom > max( pos() - input$windowsize, 0 ) & 
-                         df.data_bed$endChrom < min( pos() + input$windowsize, max(df.data_bed$endChrom))),]
-#     df.data_f$duration <- df.data_bed$endChrom - df.data_bed$startChrom
+                         df.data_bed$endChrom < min( pos() + input$windowsize, max(df.data_bed$endChrom))),]   
     df.data_f
   })
   
   df_mean  <- reactive({
 #     with (data() , aggregate (cbind (value), list (group=group), mean))
-    df_t <- with (data(), aggregate (cbind (value), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
-    df_t$mean <- df_t$value [,1]
-    df_t$std.error <- df_t$value [,2]
-     
+    df_t <- with (data(), aggregate (cbind (value, duration), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
+    df_t$meanValue <- df_t$value [,1]
+    df_t$std.errorValue <- df_t$value [,2]
+    
+    df_t$meanDuration <- df_t$duration [,1]
+    df_t$std.errorDuration <- df_t$duration [,2]
+    
     df_t
   }) 
   
-  output$barPlot <- renderPlot({  
-    p = ggplot(data = df_mean(), aes(x=group, y=mean, fill=group)) +
+  output$barPlotValue <- renderPlot({  
+    p = ggplot(data = df_mean(), aes(x=group, y=meanValue, fill=group)) +
       geom_bar(stat="identity", position=position_dodge()) +
-      geom_errorbar(aes(ymin=mean-std.error, ymax=mean+std.error), width=.2, position=position_dodge(.9)) +
+      geom_errorbar(aes(ymin=meanValue-std.errorValue, ymax=meanValue+std.errorValue), width=.2, position=position_dodge(.9)) +
       labs (title = "Mean value\n") + 
       labs (x = "\nMean value", y = "Group\n")
-    
+    print(p) 
+  })
+
+  output$barPlotDuration <- renderPlot({  
+    p = ggplot(data = df_mean(), aes(x=group, y=meanDuration, fill=group)) +
+      geom_bar(stat="identity", position=position_dodge()) +
+      geom_errorbar(aes(ymin=meanDuration-std.errorDuration, ymax=meanDuration+std.errorDuration), width=.2, position=position_dodge(.9)) +
+      labs (title = "Length\n") + 
+      labs (x = "\nLength", y = "Group\n")
+      
   print(p) 
   })  
   
