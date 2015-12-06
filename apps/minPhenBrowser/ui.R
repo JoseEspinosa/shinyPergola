@@ -32,6 +32,7 @@ shinyUI(pageWithSidebar(
   mainPanel(
     textOutput("text1"),
     plotOutput("barPlotValue", height=400),
-    plotOutput("barPlotDuration", height=400)
+    plotOutput("barPlotDuration", height=400),
+    plotOutput("barPlotN", height=400)
   )
 ))

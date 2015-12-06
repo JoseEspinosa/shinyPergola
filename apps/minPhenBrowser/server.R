@@ -2,11 +2,14 @@ library(shiny)
 library(datasets)
 library (plotrix) #std.err # mirar si la utilizo
 library (ggplot2)
+# library(plyr)
 
 source ("/Users/jespinosa/git/phecomp/lib/R/plotParamPublication.R")
 
 # runApp ("/Users/jespinosa/git/shinyPergola/apps/minPhenBrowser")
 path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
+
+colours_v <- c("darkgreen", "red", "magenta", "black") 
 
 setwd(path_files)
 list_files <-list.files(path=path_files ,pattern = ".bed$")
@@ -33,7 +36,25 @@ df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
 # 
 colnames (df.data_bed) <- c("id", "chrom", "startChrom", "endChrom", "V4", "value", "strand", "V7", "V8", "V9", "group")
 df.data_bed$duration <- df.data_bed$endChrom - df.data_bed$startChrom
+tail(df.data_bed)
+
+df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
+                            labels=c("control", "case"))
+
+# length (df.data_bed[,1])
+#
+# df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), FUN=function (x) (length (x))))
+# df_t  <- with (df.data_bed_filt , aggregate (cbind (value,duration), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x), length = length(x))))
 # 
+# df_t$meanValue <- df_t$value [,1]
+# df_t$std.errorValue <- df_t$value [,2]
+# df_t$number <- df_t$value [,3]
+# 
+# df_t$meanDuration <- df_t$duration [,1]
+# df_t$std.errorDuration <- df_t$duration [,2]
+
+#
+# df.mean_bad
 # ini_window <- 1000000
 # end_window <- 1600000
 
@@ -127,9 +148,10 @@ shinyServer(function(input, output) {
   
   df_mean  <- reactive({
 #     with (data() , aggregate (cbind (value), list (group=group), mean))
-    df_t <- with (data(), aggregate (cbind (value, duration), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
+    df_t <- with (data(), aggregate (cbind (value, duration), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x), length(x))))
     df_t$meanValue <- df_t$value [,1]
     df_t$std.errorValue <- df_t$value [,2]
+    df_t$number <- df_t$value [,3]
     
     df_t$meanDuration <- df_t$duration [,1]
     df_t$std.errorDuration <- df_t$duration [,2]
@@ -141,6 +163,7 @@ shinyServer(function(input, output) {
     p = ggplot(data = df_mean(), aes(x=group, y=meanValue, fill=group)) +
       geom_bar(stat="identity", position=position_dodge()) +
       geom_errorbar(aes(ymin=meanValue-std.errorValue, ymax=meanValue+std.errorValue), width=.2, position=position_dodge(.9)) +
+      scale_fill_manual(values=colours_v) +
       labs (title = "Mean value\n") + 
       labs (x = "\nMean value", y = "Group\n")
     print(p) 
@@ -150,11 +173,22 @@ shinyServer(function(input, output) {
     p = ggplot(data = df_mean(), aes(x=group, y=meanDuration, fill=group)) +
       geom_bar(stat="identity", position=position_dodge()) +
       geom_errorbar(aes(ymin=meanDuration-std.errorDuration, ymax=meanDuration+std.errorDuration), width=.2, position=position_dodge(.9)) +
+      scale_fill_manual(values=colours_v) +
       labs (title = "Length\n") + 
       labs (x = "\nLength", y = "Group\n")
-      
   print(p) 
   })  
   
+  # Number of events
+  output$barPlotN <- renderPlot({  
+    p = ggplot(data = df_mean(), aes(x=group, y=number, fill=group)) +
+      geom_bar(stat="identity", position=position_dodge()) +
+      scale_fill_manual(values=colours_v) +
+      labs (title = "Number of events\n") + 
+      labs (x = "\nNumber", y = "Group\n")
+  print(p) 
+  })  
+
+  # Average meal duration
 })
   
