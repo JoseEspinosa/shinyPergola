@@ -39,6 +39,8 @@ df.data_bed$rate <- df.data_bed$value / df.data_bed$duration
 df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
                             labels=c("control", "case"))
 
+df.data_bed$id <- as.numeric (df.data_bed$id)
+
 # Define server logic required to plot various variables against mpg
 shinyServer(function(input, output) {
   
@@ -63,10 +65,18 @@ shinyServer(function(input, output) {
 
   data <- reactive({    
     df.data_f <- df.data_bed [which (df.data_bed$start > max( pos() - input$windowsize, 0 ) & 
-                         df.data_bed$end < min( pos() + input$windowsize, max(df.data_bed$end))),]   
+                         df.data_bed$end < min( pos() + input$windowsize, max(df.data_bed$end))),]
     df.data_f
   })
   
+  # Intervals plot
+  # Next step colour by group
+  output$intervals <- renderPlot({ 
+    p = ggplot(data = data()) +
+      geom_rect(aes(xmin = start, xmax = end, ymin = id, ymax = id + 0.9))
+    print (p)
+  }) 
+
   df_mean  <- reactive({
 #     with (data() , aggregate (cbind (value), list (group=group), mean))
     df_t <- with (data(), aggregate (cbind (value, duration, rate), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x), length(x))))
@@ -123,6 +133,6 @@ shinyServer(function(input, output) {
       labs (title = "Rate\n") + 
       labs (x = "\nRate", y = "Group\n")
     print(p) 
-})  
+  })  
 })
   
