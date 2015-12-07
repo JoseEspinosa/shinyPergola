@@ -48,38 +48,35 @@ tail(df.data_bed)
 df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
                             labels=c("control", "case"))
 
-# length (df.data_bed[,1])
-#
-# df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), FUN=function (x) (length (x))))
-# df_t  <- with (df.data_bed_filt , aggregate (cbind (value,duration), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x), length = length(x))))
-# 
-# df_t$meanValue <- df_t$value [,1]
-# df_t$std.errorValue <- df_t$value [,2]
-# df_t$number <- df_t$value [,3]
-# 
-# df_t$meanDuration <- df_t$duration [,1]
-# df_t$std.errorDuration <- df_t$duration [,2]
+length (df.data_bed[,1])
 
-#
-# df.mean_bad
-# ini_window <- 1000000
-# end_window <- 1600000
+ini_window <- 1000000
+end_window <- 1600000
 
-# df.data_bed [which (df.data_bed$startChrom > max( 300 - input$windowsize, 0 ) & 
-#                       df.data_bed$endChrom < min( 300 + input$windowsize, max(df.data_bed$endChrom))),]
+df.data_bed [which (df.data_bed$startChrom > max( 300 - input$windowsize, 0 ) & 
+                      df.data_bed$endChrom < min( 300 + input$windowsize, max(df.data_bed$endChrom))),]
 
-# df.data_bed_filt <- df.data_bed [which (df.data_bed$startChrom > ini_window & df.data_bed$endChrom < end_window),]
-# pos <- 569984
-# input_windowsize <- 1000
+df.data_bed_filt <- df.data_bed [which (df.data_bed$startChrom > ini_window & df.data_bed$endChrom < end_window),]
+pos <- 569984
+input_windowsize <- 1000
 # 
-# df.data_bed_filt <- df.data_bed [which (df.data_bed$startChrom > max( pos - input_windowsize, 0 ) & 
-#                       df.data_bed$endChrom < min( pos + input_windowsize, max(df.data_bed$endChrom))),]
-# head (df.data_bed_filt)
-# # # df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
-# # df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
-# df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), mean))
-# df.mean_bad <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
-# class (df.mean_bad$value)
+df.data_bed_filt <- df.data_bed [which (df.data_bed$startChrom > max( pos - input_windowsize, 0 ) & 
+                      df.data_bed$endChrom < min( pos + input_windowsize, max(df.data_bed$endChrom))),]
+head (df.data_bed_filt)
+# df_t <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), mean))
+# df_t <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
+df_t <- with (df.data_bed_filt, aggregate (cbind (value, duration, rate), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x), length(x))))
+
+df_t$meanValue <- df_t$value [,1]
+df_t$std.errorValue <- df_t$value [,2]
+df_t$number <- df_t$value [,3]
+
+df_t$meanDuration <- df_t$duration [,1]
+df_t$std.errorDuration <- df_t$duration [,2]
+
+df_t$meanRate <- df_t$rate [,1]
+df_t$std.errorRate <- df_t$rate [,2]
+
 # df.mean_bad$mean <- df.mean_bad$value [,1]
 # df.mean_bad$std.error <- df.mean_bad$value [,2]
 # df.mean_bad$ymax <- df.mean_bad$mean + df.mean_bad$value [,2]

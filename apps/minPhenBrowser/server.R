@@ -32,8 +32,9 @@ data_bed = do.call (rbind, lapply (list_files, y <- function (x) { data <- read.
 df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
 
 colnames (df.data_bed) <- c("id", "chrom", "startChrom", "endChrom", "V4", "value", "strand", "V7", "V8", "V9", "group")
+choices_id <- unique (data_bed$id)
 df.data_bed$duration <- df.data_bed$endChrom - df.data_bed$startChrom
-tail(df.data_bed)
+df.data_bed$rate <- df.data_bed$value / df.data_bed$duration 
 
 df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
                             labels=c("control", "case"))
@@ -68,13 +69,17 @@ shinyServer(function(input, output) {
   
   df_mean  <- reactive({
 #     with (data() , aggregate (cbind (value), list (group=group), mean))
-    df_t <- with (data(), aggregate (cbind (value, duration), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x), length(x))))
+    df_t <- with (data(), aggregate (cbind (value, duration, rate), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x), length(x))))
     df_t$meanValue <- df_t$value [,1]
     df_t$std.errorValue <- df_t$value [,2]
+    
     df_t$number <- df_t$value [,3]
     
     df_t$meanDuration <- df_t$duration [,1]
     df_t$std.errorDuration <- df_t$duration [,2]
+    
+    df_t$meanRate <- df_t$rate [,1]
+    df_t$std.errorRate <- df_t$rate [,2]
     
     df_t
   }) 
@@ -110,12 +115,12 @@ shinyServer(function(input, output) {
   })  
 
   # Rate
-  output$barPlotLength <- renderPlot({  
-    p = ggplot(data = df_mean(), aes(x=group, y=number, fill=group)) +
+  output$barPlotRate <- renderPlot({  
+    p = ggplot(data = df_mean(), aes(x=group, y=meanRate, fill=group)) +
       geom_bar(stat="identity", position=position_dodge()) +
       scale_fill_manual(values=colours_v) +
-      labs (title = "Number of events\n") + 
-      labs (x = "\nNumber", y = "Group\n")
+      labs (title = "Rate\n") + 
+      labs (x = "\nRate", y = "Group\n")
     print(p) 
 })  
 })
