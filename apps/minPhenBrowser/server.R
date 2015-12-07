@@ -118,6 +118,7 @@ shinyServer(function(input, output) {
   output$barPlotRate <- renderPlot({  
     p = ggplot(data = df_mean(), aes(x=group, y=meanRate, fill=group)) +
       geom_bar(stat="identity", position=position_dodge()) +
+      geom_errorbar(aes(ymin=meanRate-std.errorRate, ymax=meanRate+std.errorRate), width=.2, position=position_dodge(.9)) +
       scale_fill_manual(values=colours_v) +
       labs (title = "Rate\n") + 
       labs (x = "\nRate", y = "Group\n")
