@@ -31,9 +31,9 @@ data_bed = do.call (rbind, lapply (list_files, y <- function (x) { data <- read.
 
 df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
 
-colnames (df.data_bed) <- c("id", "chrom", "startChrom", "endChrom", "V4", "value", "strand", "V7", "V8", "V9", "group")
+colnames (df.data_bed) <- c("id", "chr", "start", "end", "V4", "value", "strand", "V7", "V8", "V9", "group")
 choices_id <- unique (data_bed$id)
-df.data_bed$duration <- df.data_bed$endChrom - df.data_bed$startChrom
+df.data_bed$duration <- df.data_bed$end - df.data_bed$start
 df.data_bed$rate <- df.data_bed$value / df.data_bed$duration 
 
 df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
@@ -48,12 +48,12 @@ shinyServer(function(input, output) {
   
   output$genomicPositionSelect <- renderUI({
 #     sliderInput( "gpos", "Genomic Position:", min = 10, max = chromlengths[input$chrom] - 10, value = 200 )
-    sliderInput( "tpos", "Time Point:", min = 10, max = max(df.data_bed$endChrom) - 10, value = 569984 )
+    sliderInput( "tpos", "Time Point:", min = 10, max = max(df.data_bed$end) - 10, value = 569984 )
     
   })
   
   pos <-  reactive({
-    min( max( input$windowsize + 1, input$tpos ), max(df.data_bed$endChrom) - input$windowsize - 1 )
+    min( max( input$windowsize + 1, input$tpos ), max(df.data_bed$end) - input$windowsize - 1 )
   })
   
   output$text1 <- renderText({ 
@@ -62,8 +62,8 @@ shinyServer(function(input, output) {
   })
 
   data <- reactive({    
-    df.data_f <- df.data_bed [which (df.data_bed$startChrom > max( pos() - input$windowsize, 0 ) & 
-                         df.data_bed$endChrom < min( pos() + input$windowsize, max(df.data_bed$endChrom))),]   
+    df.data_f <- df.data_bed [which (df.data_bed$start > max( pos() - input$windowsize, 0 ) & 
+                         df.data_bed$end < min( pos() + input$windowsize, max(df.data_bed$end))),]   
     df.data_f
   })
   

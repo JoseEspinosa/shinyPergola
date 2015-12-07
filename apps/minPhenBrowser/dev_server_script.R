@@ -38,7 +38,7 @@ tail(data_bed)
 df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
 # head (df.data_bed [which (df.data_bed$id==2),] )
 # 
-colnames (df.data_bed) <- c("id", "chrom", "startChrom", "endChrom", "V4", "value", "strand", "V7", "V8", "V9", "group")
+colnames (df.data_bed) <- c("id", "chr", "start", "end", "V4", "value", "strand", "V7", "V8", "V9", "group")
 df.data_bed$duration <- df.data_bed$endChrom - df.data_bed$startChrom
 df.data_bed$duration <- df.data_bed$endChrom - df.data_bed$startChrom
 df.data_bed$rate <- df.data_bed$value / df.data_bed$duration 
@@ -102,17 +102,7 @@ p
 #   scale_fill_manual(values=cols, labels=c("Ctrl 24h before", "Ctrl after cleaning", "Ctrl 24h after", 
 #                                           "HF 24h before", "HF after cleaning", "HF 24h after"))
 
-# df.mean_bad$mean <- df.mean_bad$value [,1]
-# df.mean_bad$std.error <- df.mean_bad$value [,2]
+# Create and IRanges object from a data frame coming from a bed file
+library("GenomicRanges")
+df.data_bed_filt
 
-# head (df.data_bed_filt)
-# choices_id <- unique (data_bed$id)
-# data_bed data_bed$id == 1
-# chromlengths <- as.numeric(subset( chromosomes, otype == "H5I_DATASET" & name == "Reference" )$dim)
-# subset(data_bed, id=1)
-
-# We tweak the "am" field to have nicer factor labels. Since this doesn't
-# rely on any user inputs we can do this once at startup and then use the
-# value throughout the lifetime of the application
-# mpgData <- mtcars
-# mpgData$am <- factor(mpgData$am, labels = c("Automatic", "Manual"))
