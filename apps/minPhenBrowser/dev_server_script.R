@@ -4,10 +4,14 @@
 ### Script to develop the data frame and plots that are   ###
 ### going to be shown in the behavioral browser           ###
 #############################################################
-
 library (plotrix) #std.err # mirar si la utilizo
-library (ggplot2)
+# library (ggplot2)
 # library(plyr)
+# library("GenomicRanges")
+# source("http://bioconductor.org/biocLite.R") #biocLite("BiocUpgrade")  
+# biocLite("ggbio") # load ggplot function that allows to use Granges 
+# library("ggbio") # load ggplot function that allows Granges
+head (df.data_bed_filt)
 
 source ("/Users/jespinosa/git/phecomp/lib/R/plotParamPublication.R")
 
@@ -39,8 +43,8 @@ df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
 # head (df.data_bed [which (df.data_bed$id==2),] )
 # 
 colnames (df.data_bed) <- c("id", "chr", "start", "end", "V4", "value", "strand", "V7", "V8", "V9", "group")
-df.data_bed$duration <- df.data_bed$endChrom - df.data_bed$startChrom
-df.data_bed$duration <- df.data_bed$endChrom - df.data_bed$startChrom
+df.data_bed$duration <- df.data_bed$end - df.data_bed$start
+df.data_bed$duration <- df.data_bed$end - df.data_bed$start
 df.data_bed$rate <- df.data_bed$value / df.data_bed$duration 
   
 tail(df.data_bed)
@@ -53,15 +57,12 @@ length (df.data_bed[,1])
 ini_window <- 1000000
 end_window <- 1600000
 
-df.data_bed [which (df.data_bed$startChrom > max( 300 - input$windowsize, 0 ) & 
-                      df.data_bed$endChrom < min( 300 + input$windowsize, max(df.data_bed$endChrom))),]
-
-df.data_bed_filt <- df.data_bed [which (df.data_bed$startChrom > ini_window & df.data_bed$endChrom < end_window),]
+df.data_bed_filt <- df.data_bed [which (df.data_bed$start > ini_window & df.data_bed$end < end_window),]
 pos <- 569984
 input_windowsize <- 1000
 # 
-df.data_bed_filt <- df.data_bed [which (df.data_bed$startChrom > max( pos - input_windowsize, 0 ) & 
-                      df.data_bed$endChrom < min( pos + input_windowsize, max(df.data_bed$endChrom))),]
+df.data_bed_filt <- df.data_bed [which (df.data_bed$start > max( pos - input_windowsize, 0 ) & 
+                      df.data_bed$end < min( pos + input_windowsize, max(df.data_bed$end))),]
 head (df.data_bed_filt)
 # df_t <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), mean))
 # df_t <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
@@ -102,7 +103,142 @@ p
 #   scale_fill_manual(values=cols, labels=c("Ctrl 24h before", "Ctrl after cleaning", "Ctrl 24h after", 
 #                                           "HF 24h before", "HF after cleaning", "HF 24h after"))
 
-# Create and IRanges object from a data frame coming from a bed file
-library("GenomicRanges")
-df.data_bed_filt
 
+# Create and IRanges object from a data frame coming from a bed file
+# bedRanges <- with(df.data_bed_filt, GRanges(chr, IRanges(start+1, end), strand, value, duration, rate, group,  id=id))
+# eventually use makeGRangesFromDataFrame 
+# ??makeGRangesFromDataFrame
+
+# str(bedRanges)
+ir <- ranges(bedRanges)
+dat <- cbind(as.data.frame(ir), bin = bins)
+class(dat$bin)
+
+df.data_bed_filt$id <- as.numeric (df.data_bed_filt$id)
+library(ggplot2)
+ggplot(df.data_bed_filt) + 
+  geom_rect(aes(xmin = start, xmax = end, ymin = id, ymax = id + 0.9)) 
++
+  theme_bw()
+
+
+#############
+#### http://stackoverflow.com/questions/21506724/how-to-plot-overlapping-ranges-with-ggplot2
+# biocLite("IRanges") #plotRanges is inside the vignette
+ir <- IRanges(c(3, 8, 14, 15, 19, 34, 40),
+              width = c(12, 6, 6, 15, 6, 2, 7))
+bins <- disjointBins(IRanges(start(ir), end(ir) + 1))
+
+dat <- cbind(as.data.frame(ir), bin = bins)
+
+library(ggplot2)
+ggplot(dat) + 
+  geom_rect(aes(xmin = start, xmax = end,
+                ymin = bin, ymax = bin + 0.9)) +
+  theme_bw()
+
+library(GenomicRanges)
+# biocLite("trackViewer")
+library("trackViewer")
+gir = GRanges(seqnames="chr1", ir, strand=c(rep("+", 4), rep("-",3)))
+plotGRanges(bedRanges, xlim=c(0,60))
+
+set.seed(123)
+gr.b <- GRanges(seqnames = "chr1", IRanges(start = seq(1, 100, by = 10),
+                                           width = sample(4:9, size = 10, replace = TRUE)),
+                score = rnorm(10, 10, 3), value = runif(10, 1, 100), id = rep(1:4, each = 3, len = 10)) 
+gr.b 
+
+## bar 
+
+ggplot(gr.b) + geom_bar(aes(fill = value)) + geom_segment(stat = "identity", aes(y = score + 2))
+
+## line
+ggplot(gr.b) +  geom_rect(aes(xmin = start, xmax = end,
+                              ymin = bin, ymax = bin + 0.9))
+
+# geom_rect(aes(xmin = start, xmax = end,
+#               ymin = bin, ymax = bin + 0.9)) +
+
+
+par(mfrow=c(4,1), mar=c(4,2,2,2))
+
+plotRanges(ir, xlim=c(0,60))
+plotRanges(reduce(ir), xlim=c(0,60))
+plotRanges(disjoin(ir), xlim=c(0,60))
+plotRanges(gaps(ir), xlim=c(0,60))
+
+library(GenomicRanges)
+gir = GRanges(seqnames="chr1", ir, strand=c(rep("+", 4), rep("-",3)))
+
+par(mfrow=c(4,1), mar=c(4,2,2,2))
+class (gir)
+plotGRanges(gir, xlim=c(0,60), range=c(0,60))
+plotGRanges(resize(gir,1), xlim=c(0,60))
+plotGRanges(flank(gir,3), xlim=c(0,60), col="purple")
+plotGRanges(flank(gir,2,start=FALSE), xlim=c(0,60), col="brown")
+
+#####
+# http://bioconductor.org/packages/release/bioc/manuals/trackViewer/man/trackViewer.pdf
+gr1 <- GRanges("chr1", IRanges(1:50, 51:100))
+gr2 <- GRanges("chr1", IRanges(seq(from=10, to=80, by=5),
+                               seq(from=20, to=90, by=5)))
+vp <- plotGRanges(gr1, gr2, range=GRanges("chr1", IRanges(1, 100)))
+addGuideLine(guideLine=c(5, 10, 50, 90), col=2:5, vp=vp)
+gr <- GRanges("chr1", IRanges(c(1, 11, 21, 31), width=9),
+              score=c(5, 10, 5, 1))
+plotGRanges(gr, range=GRanges("chr1", IRanges(1, 50)))
+
+######
+### http://davetang.org/muse/2013/10/03/using-gviz/
+# biocLite("Gviz")
+
+#load the package
+library(Gviz)
+ref <- GRanges('chr', IRanges(1, 500))
+ref_track <- GenomeAxisTrack(ref, lwd=4, fontsize=20)
+
+data <- data.frame(chr=c('chr1','chr1','chr1'),
+                   start=c(50,200,400),
+                   end=c(75, 250, 500),
+                   id=c('one', 'two', 'three'),
+                   strand=c('+','-','-'))
+
+data_g <- with(data, GRanges(chr, IRanges(start, end), strand, id=id))
+data_g
+data_track <- AnnotationTrack(data_g, name = "Features", width = 15, showFeatureId = T, min.height=2)
+plotTracks(c(ref_track, data_track))
+
+####
+# https://github.com/kasperdanielhansen/genbioconductor/blob/master/Rmd/IRanges_Basic.Rmd
+# http://kasperdanielhansen.github.io/genbioconductor/
+source("http://www.bioconductor.org/biocLite.R")
+biocLite(c("IRanges"))
+library(IRanges)
+ir <- IRanges(start = c(1,3,7,9), end = c(4,4,8,10))
+
+#####
+plotRanges <- function(x, xlim = x, main = deparse(substitute(x)), col = "black", sep = 0.5, ...)
+    {
+        height <- 1
+        if (is(xlim, "Ranges"))
+            xlim <- c(min(start(xlim)), max(end(xlim)))
+        bins <- disjointBins(IRanges(start(x), end(x) + 1))
+        plot.new()
+        plot.window(xlim, c(0, max(bins)*(height + sep)))
+        ybottom <- bins * (sep + height) - height
+        rect(start(x)-0.5, ybottom, end(x)+0.5, ybottom + height, col = col, ...)
+        title(main)
+        axis(1)
+      }
+plotRanges(ir)
+plotRanges(reduce(ir))
+
+ir
+reduce(ir)
+
+disjoin(ir1)
+
+plotRanges(ir)
+
+plotRanges(disjoin(ir))
