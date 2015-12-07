@@ -77,21 +77,16 @@ df_t$std.errorDuration <- df_t$duration [,2]
 df_t$meanRate <- df_t$rate [,1]
 df_t$std.errorRate <- df_t$rate [,2]
 
-# df.mean_bad$mean <- df.mean_bad$value [,1]
-# df.mean_bad$std.error <- df.mean_bad$value [,2]
-# df.mean_bad$ymax <- df.mean_bad$mean + df.mean_bad$value [,2]
-# df.mean_bad$ymin <- df.mean_bad$mean - df.mean_bad$value [,2]
+df.mean_bad <- df_t
 
-# with (data() , aggregate (cbind (value), list (group=group), mean))
-# df.mean_bad$group
+p = ggplot(data = df.mean_bad, aes(x=group, y=meanValue, fill=group)) +
+    geom_bar(stat="identity", position=position_dodge()) +
+    geom_errorbar(aes(ymin=meanValue-std.errorValue, ymax=meanValue+std.errorValue), width=.2, position=position_dodge(.9))
 
-# p = ggplot(data = df.mean_bad, aes(x=group, y=mean, fill=group)) +
-#     geom_bar(stat="identity", position=position_dodge()) +
-#     geom_errorbar(aes(ymin=mean-std.error, ymax=mean+std.error), width=.2, position=position_dodge(.9))
-
-# p  
+p  
 
 
+# Example extracted from another script
 # ggplot(data=tbl_stat_mean, aes(x=index, y=mean, fill=group2)) + 
 #   #        geom_bar(stat="identity", position=position_dodge()) +
 #   geom_bar(stat="identity", position=position_dodge(), show_guide = FALSE) +
