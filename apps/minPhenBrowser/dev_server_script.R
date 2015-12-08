@@ -52,6 +52,15 @@ tail(df.data_bed)
 df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
                             labels=c("control", "case"))
 
+# Probably I have to do something with height of tracks, and always shown as many tracks as available in the data,
+# even if the are empty, unique (id) --> ylim
+df.data_bed$group_id <- paste(df.data_bed$id, df.data_bed$group, sep="_")
+df.data_bed <- df.data_bed [with(df.data_bed, order(group, id)), ]
+# df.data_bed_filt  <- transform (df.data_bed_filt [which (df.data_bed_filt$group == controlGroupLabel), ], new_id=match(group_id, unique(group_id)))
+# transform (df.data_bed_filt [which (df.data_bed_filt$group == caseGroupLabel), ], new_id=match(group_id, unique(group_id)))
+
+df.data_bed <- transform (df.data_bed, new_id=match(group_id, unique(group_id)))
+
 length (df.data_bed[,1])
 
 ini_window <- 1000000
@@ -59,12 +68,15 @@ end_window <- 1600000
 n_tracks <- length(unique(df.data_bed$id))
 
 df.data_bed_filt <- df.data_bed [which (df.data_bed$start > ini_window & df.data_bed$end < end_window),]
-pos <- 1000
-input_windowsize <- 1001
+# pos <- 1000
+pos <- 1000000
+# input_windowsize <- 1001
+input_windowsize <- 100100
 
 df.data_bed_filt <- df.data_bed [which (df.data_bed$start > max( pos - input_windowsize, 0 ) & 
                       df.data_bed$end < min( pos + input_windowsize, max(df.data_bed$end))),]
 head (df.data_bed_filt)
+tail (df.data_bed_filt)
 # df_t <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group), mean))
 # df_t <- with (df.data_bed_filt , aggregate (cbind (value), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x))))
 df_t <- with (df.data_bed_filt, aggregate (cbind (value, duration, rate), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x), length(x))))
@@ -109,14 +121,17 @@ library(ggplot2)
 df.data_bed_filt
 # I have to show always 10 bins or something meaningful depending of the length of the data I am going to show
 
-# Probably I have to do something with height of tracks, and always shown as many tracks as available in the data,
-# even if the are empty, unique (id) --> ylim
+unique(df.data_bed_filt$new_id)
+unique(df.data_bed_filt$new_id) + 0.5
 ggplot(df.data_bed_filt) + 
-  geom_rect(aes(xmin = start, xmax = end, ymin = id, ymax = id + 0.9)) +
-  scale_y_continuous(limits=c(0,n_tracks))
+  geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9)) +
+#   geom_bar(aes(xmin = start, xmax = end, ymin = group_id, ymax = group_id + 0.9)) +
+  scale_y_continuous(limits=c(1, n_tracks+1), labels=new_id)
 +
   theme_bw()
 
+ggplot(df.data_bed_filt) + 
+  geom_linerange(aes(x =  new_id, ymin = start, ymax = end), size =30) + coord_flip()
 
 
 # Create and IRanges object from a data frame coming from a bed file

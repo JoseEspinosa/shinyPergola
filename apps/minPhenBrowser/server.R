@@ -32,9 +32,14 @@ data_bed = do.call (rbind, lapply (list_files, y <- function (x) { data <- read.
 df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
 
 colnames (df.data_bed) <- c("id", "chr", "start", "end", "V4", "value", "strand", "V7", "V8", "V9", "group")
-choices_id <- unique (data_bed$id)
-n_tracks <- length(unique(data_bed$id))
-  
+choices_id <- unique (df.data_bed$id)
+
+n_tracks <- length(unique(df.data_bed$id))
+
+df.data_bed$group_id <- paste (df.data_bed$id, df.data_bed$group, sep="_")
+df.data_bed <- df.data_bed [with(df.data_bed, order(group, id)), ]
+df.data_bed <- transform(df.data_bed, new_id=match(group_id, unique(group_id)))
+
 df.data_bed$duration <- df.data_bed$end - df.data_bed$start
 df.data_bed$rate <- df.data_bed$value / df.data_bed$duration 
 
@@ -42,7 +47,9 @@ df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"),
                             labels=c("control", "case"))
 
 df.data_bed$id <- as.numeric (df.data_bed$id)
+min_tr <- min(df.data_bed$id)
 
+head (df.data_bed)
 # Define server logic required to plot various variables against mpg
 shinyServer(function(input, output) {
   
@@ -74,9 +81,15 @@ shinyServer(function(input, output) {
   # Next step colour by group
   output$intervals <- renderPlot({ 
     p = ggplot(data = data()) +
-      geom_rect(aes(xmin = start, xmax = end, ymin = id, ymax = id + 0.9, fill=group)) +
+      geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9, fill=group)) +
       scale_fill_manual(values=colours_v) +
-      scale_y_continuous(limits=c (1, n_tracks + 1))
+      scale_y_continuous(limits=c(min_tr, n_tracks + 1), breaks=unique(data()$new_id) + 0.5, labels=unique(data()$id))
+    
+#     p = ggplot(data = data()) +
+#       geom_linerange(aes(x =  new_id, ymin = start, ymax = end, colour=group), size =30) + 
+#       scale_color_manual(values=colours_v) +
+#       coord_flip()
+     
     print (p)
   }) 
 
