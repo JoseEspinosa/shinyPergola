@@ -11,7 +11,6 @@ library (plotrix) #std.err # mirar si la utilizo
 # source("http://bioconductor.org/biocLite.R") #biocLite("BiocUpgrade")  
 # biocLite("ggbio") # load ggplot function that allows to use Granges 
 # library("ggbio") # load ggplot function that allows Granges
-head (df.data_bed_filt)
 
 source ("/Users/jespinosa/git/phecomp/lib/R/plotParamPublication.R")
 
@@ -41,8 +40,9 @@ tail(data_bed)
 
 df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
 # head (df.data_bed [which (df.data_bed$id==2),] )
-# 
+ 
 colnames (df.data_bed) <- c("id", "chr", "start", "end", "V4", "value", "strand", "V7", "V8", "V9", "group")
+df.data_bed$id <- as.numeric (df.data_bed$id)
 df.data_bed$duration <- df.data_bed$end - df.data_bed$start
 df.data_bed$duration <- df.data_bed$end - df.data_bed$start
 df.data_bed$rate <- df.data_bed$value / df.data_bed$duration 
@@ -58,9 +58,9 @@ ini_window <- 1000000
 end_window <- 1600000
 
 df.data_bed_filt <- df.data_bed [which (df.data_bed$start > ini_window & df.data_bed$end < end_window),]
-pos <- 569984
-input_windowsize <- 1000
-# 
+pos <- 1000
+input_windowsize <- 1001
+
 df.data_bed_filt <- df.data_bed [which (df.data_bed$start > max( pos - input_windowsize, 0 ) & 
                       df.data_bed$end < min( pos + input_windowsize, max(df.data_bed$end))),]
 head (df.data_bed_filt)
@@ -103,6 +103,16 @@ p
 #   scale_fill_manual(values=cols, labels=c("Ctrl 24h before", "Ctrl after cleaning", "Ctrl 24h after", 
 #                                           "HF 24h before", "HF after cleaning", "HF 24h after"))
 
+# I finally used this version
+library(ggplot2)
+df.data_bed_filt
+# I have to show always 10 bins or something meaningful depending of the length of the data I am going to show
+ggplot(df.data_bed_filt) + 
+  geom_rect(aes(xmin = start, xmax = end, ymin = id, ymax = id + 0.9)) 
++
+  theme_bw()
+
+
 
 # Create and IRanges object from a data frame coming from a bed file
 # bedRanges <- with(df.data_bed_filt, GRanges(chr, IRanges(start+1, end), strand, value, duration, rate, group,  id=id))
@@ -110,16 +120,11 @@ p
 # ??makeGRangesFromDataFrame
 
 # str(bedRanges)
-ir <- ranges(bedRanges)
-dat <- cbind(as.data.frame(ir), bin = bins)
-class(dat$bin)
+# ir <- ranges(bedRanges)
+# dat <- cbind(as.data.frame(ir), bin = bins)
+# class(dat$bin)
 
-df.data_bed_filt$id <- as.numeric (df.data_bed_filt$id)
-library(ggplot2)
-ggplot(df.data_bed_filt) + 
-  geom_rect(aes(xmin = start, xmax = end, ymin = id, ymax = id + 0.9)) 
-+
-  theme_bw()
+# df.data_bed_filt$id <- as.numeric (df.data_bed_filt$id)
 
 
 #############
