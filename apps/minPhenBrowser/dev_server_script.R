@@ -56,6 +56,7 @@ length (df.data_bed[,1])
 
 ini_window <- 1000000
 end_window <- 1600000
+n_tracks <- length(unique(df.data_bed$id))
 
 df.data_bed_filt <- df.data_bed [which (df.data_bed$start > ini_window & df.data_bed$end < end_window),]
 pos <- 1000
@@ -107,8 +108,12 @@ p
 library(ggplot2)
 df.data_bed_filt
 # I have to show always 10 bins or something meaningful depending of the length of the data I am going to show
+
+# Probably I have to do something with height of tracks, and always shown as many tracks as available in the data,
+# even if the are empty, unique (id) --> ylim
 ggplot(df.data_bed_filt) + 
-  geom_rect(aes(xmin = start, xmax = end, ymin = id, ymax = id + 0.9)) 
+  geom_rect(aes(xmin = start, xmax = end, ymin = id, ymax = id + 0.9)) +
+  scale_y_continuous(limits=c(0,n_tracks))
 +
   theme_bw()
 

@@ -33,6 +33,8 @@ df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
 
 colnames (df.data_bed) <- c("id", "chr", "start", "end", "V4", "value", "strand", "V7", "V8", "V9", "group")
 choices_id <- unique (data_bed$id)
+n_tracks <- length(unique(data_bed$id))
+  
 df.data_bed$duration <- df.data_bed$end - df.data_bed$start
 df.data_bed$rate <- df.data_bed$value / df.data_bed$duration 
 
@@ -51,7 +53,6 @@ shinyServer(function(input, output) {
   output$genomicPositionSelect <- renderUI({
 #     sliderInput( "gpos", "Genomic Position:", min = 10, max = chromlengths[input$chrom] - 10, value = 200 )
     sliderInput( "tpos", "Time Point:", min = 10, max = max(df.data_bed$end) - 10, value = 569984 )
-    
   })
   
   pos <-  reactive({
@@ -73,7 +74,9 @@ shinyServer(function(input, output) {
   # Next step colour by group
   output$intervals <- renderPlot({ 
     p = ggplot(data = data()) +
-      geom_rect(aes(xmin = start, xmax = end, ymin = id, ymax = id + 0.9))
+      geom_rect(aes(xmin = start, xmax = end, ymin = id, ymax = id + 0.9, fill=group)) +
+      scale_fill_manual(values=colours_v) +
+      scale_y_continuous(limits=c (1, n_tracks + 1))
     print (p)
   }) 
 
