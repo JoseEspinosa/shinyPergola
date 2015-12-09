@@ -38,6 +38,8 @@ n_tracks <- length(unique(df.data_bed$id))
 
 df.data_bed$group_id <- paste (df.data_bed$id, df.data_bed$group, sep="_")
 df.data_bed <- df.data_bed [with(df.data_bed, order(group, id)), ]
+
+# Create a new Id that follows the order case 1,2,3/ control 1,2,3 
 df.data_bed <- transform(df.data_bed, new_id=match(group_id, unique(group_id)))
 
 df.data_bed$duration <- df.data_bed$end - df.data_bed$start
@@ -48,8 +50,6 @@ df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"),
 
 df.data_bed$id <- as.numeric (df.data_bed$id)
 min_tr <- min(df.data_bed$id)
-
-head (df.data_bed)
 
 ## Bedgraph files
 list_files_bedGr <- list.files (path=path_files ,pattern = ".bedGraph$")
@@ -70,6 +70,17 @@ data_bedGr = do.call (rbind, lapply (list_files_bedGr, y <- function (x) { data 
 
 data_bedGr <- merge (data_bedGr, df.id_group, by.x= "id", by.y = "id")
 colnames (data_bedGr) <- c("id", "chrom", "start", "end", "value", "group")
+
+data_bedGr$group <- factor(data_bedGr$group , levels=c("control", "case"), 
+                           labels=c("control", "case"))
+
+
+data_bedGr$n_group <- c(1:length (data_bedGr$group))
+data_bedGr$n_group [data_bedGr$group == controlGroupLabel] <- 1
+data_bedGr$n_group [data_bedGr$group == caseGroupLabel] <- 2
+data_bedGr$group_id <- paste (data_bedGr$n_group, data_bedGr$id, sep="_")
+
+
 data_bedGr$id <- as.numeric (data_bedGr$id)
 min_v <- floor (min (data_bedGr$value))
 max_v <- ceiling (max(data_bedGr$value))
@@ -102,7 +113,7 @@ shinyServer(function(input, output) {
 
   data <- reactive({    
     df.data_f <- df.data_bed [which (df.data_bed$start > max( pos() - input$windowsize, 0 ) & 
-                         df.data_bed$end < min( pos() + input$windowsize, max(df.data_bed$end))),]
+                              df.data_bed$end < min( pos() + input$windowsize, max(df.data_bed$end))),]
     df.data_f
   })
 
@@ -111,8 +122,6 @@ shinyServer(function(input, output) {
                                             data_bedGr$end < min( pos() + input$windowsize, max(data_bedGr$end))),]
     df.dataBedgraph_f [which (df.dataBedgraph_f$value < input$bedGraphRange [1]), "value"] <- input$bedGraphRange [1] + 0.001
     df.dataBedgraph_f [which (df.dataBedgraph_f$value > input$bedGraphRange [2]), "value"] <- input$bedGraphRange [2] - 0.001
-#     df.dataBedgraph_f [df.dataBedgraph_f$value < input_bedGraphRange [1], "value"] <- input_bedGraphRange[1]+0.001
-#     df.dataBedgraph_f [which (df.dataBedgraph_f$value > input_bedGraphRange [2]), "value"] <- input_bedGraphRange [2] - 0.001
     
     df.dataBedgraph_f
   })
@@ -132,13 +141,13 @@ shinyServer(function(input, output) {
 
   #bedGraph plot
   bedgraph_p <- reactive({ 
-        ggplot (data = dataBedgraph()) + 
-        geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
-        scale_fill_manual(values=colours_v) +
-        scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
-        facet_wrap(~ id, ncol= 1) + 
-        theme(strip.background = element_blank(), strip.text.x = element_blank())
-      })
+    ggplot (data = dataBedgraph()) + 
+    geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
+    scale_fill_manual(values=colours_v) +
+    scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
+    facet_wrap(~group_id, ncol= 1) + 
+    theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
+  })
 
   output$intervals <- renderPlot({ 
     p1 <- ggplot_gtable(ggplot_build(interv_p()))

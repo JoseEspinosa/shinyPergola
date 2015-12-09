@@ -71,8 +71,8 @@ df.data_bed_filt <- df.data_bed [which (df.data_bed$start > ini_window & df.data
 # pos <- 1000
 # pos <- 1000000
 pos <- 569000
-input_windowsize <- 1001
-# input_windowsize <- 100100
+# input_windowsize <- 1001
+input_windowsize <- 100100
 
 df.data_bed_filt <- df.data_bed [which (df.data_bed$start > max( pos - input_windowsize, 0 ) & 
                       df.data_bed$end < min( pos + input_windowsize, max(df.data_bed$end))),]
@@ -135,7 +135,7 @@ ggplot(df.data_bed_filt) +
   geom_linerange(aes(x =  new_id, ymin = start, ymax = end), size =30) + coord_flip()
 
 
-
+##########################
 ### Reading BEDGRAPH files
 path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
 
@@ -158,12 +158,28 @@ data_bedGr = do.call (rbind, lapply (list_files_bedGr, y <- function (x) { data 
                                                                    id <- gsub("(^tr_)(\\d+)(_.+$)", "\\2", x)
                                                                    data$id <- id                                                                   
                                                                    return (data) }))
-head (data_bedGr)
-data_bedGr <- merge (data_bedGr, df.id_group, by.x= "id", by.y = "id")
 
 head (data_bedGr)
+data_bedGr <- merge (data_bedGr, df.id_group, by.x= "id", by.y = "id")
 colnames (data_bedGr) <- c("id", "chrom", "start", "end", "value", "group")
+head (data_bedGr)
 data_bedGr$id <- as.numeric (data_bedGr$id)
+data_bedGr$group <- factor(data_bedGr$group , levels=c("case", "control"), 
+                            labels=c("case", "control"))
+
+data_bedGr$n_group <- c(1:length (data_bedGr$group))
+data_bedGr$n_group [data_bedGr$group == controlGroupLabel] <- 1
+data_bedGr$n_group [data_bedGr$group == caseGroupLabel] <- 2
+
+data_bedGr$group_id <- paste (data_bedGr$n_group, data_bedGr$id, sep="_")
+# data_bedGr <- data_bedGr [with(data_bedGr, order(-group, id)), ]
+
+# data_bedGr <- transform(data_bedGr, new_id=match(group_id, unique(group_id)))
+# data_bedGr$new_id <-  with(data_bedGr, factor(new_id, levels = rev(levels(new_id))))
+
+head(data_bedGr)
+
+# data_bedGr$group_id <- paste (data_bedGr$group, data_bedGr$id, sep="_")
 data_bedGr$value[1]<-  -3.5
 # if (any (data_bedGr$value < 0))
 min_v <- floor (min (data_bedGr$value))
@@ -197,13 +213,17 @@ df.dataBedgraph_f [df.dataBedgraph_f$value < input_bedGraphRange [1], "value"] <
 df.dataBedgraph_f [which (df.dataBedgraph_f$value > input_bedGraphRange [2]), "value"] <- input_bedGraphRange [2] - 0.001
 
 # Using facet to do vertical ploting of bedgraph files
+df.dataBedgraph_f$group <- factor(df.dataBedgraph_f$group , levels=c("control","case"), 
+                           labels=c("control", "case"))
+
 p <- ggplot (data = df.dataBedgraph_f) + 
   #      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
   geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
   scale_y_continuous(limits=input_bedGraphRange, breaks=input_bedGraphRange, labels=input_bedGraphRange)  + 
-  facet_wrap(~ id, ncol= 1)
+  facet_wrap(~ group_id, ncol= 1)
 p
 
+df.dataBedgraph_f$group_id
 p_bedGraph <- p + theme(strip.background = element_blank(),
        strip.text.x = element_blank())
 p_bedGraph
