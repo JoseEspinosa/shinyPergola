@@ -84,6 +84,11 @@ shinyServer(function(input, output) {
     sliderInput( "tpos", "Time Point:", min = 10, max = max(df.data_bed$end) - 10, value = 569984 )
   })
   
+  output$bedGraphRange <- renderUI({
+    sliderInput("bedGraphRange", "Range bedgraph:", 
+                min = 0, max = 4, value = c(0, 0.5), step= 0.1)
+  }) 
+  
   pos <-  reactive({
     min( max( input$windowsize + 1, input$tpos ), max(df.data_bed$end) - input$windowsize - 1 )
   })
@@ -127,11 +132,12 @@ shinyServer(function(input, output) {
 
   #bedGraph plot
   bedgraph_p <- reactive({ 
-        ggplot (data = dataBedgraph(), fill=group) + 
-         geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value)) + 
-         facet_wrap(~ id, ncol= 1) + theme(strip.background = element_blank(),
-         strip.text.x = element_blank())
-#         print (p)
+        ggplot (data = dataBedgraph()) + 
+        geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
+        scale_fill_manual(values=colours_v) +
+        scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange[2], labels=input$bedGraphRange[2])  + 
+        facet_wrap(~ id, ncol= 1) + 
+        theme(strip.background = element_blank(), strip.text.x = element_blank())
       })
 
   output$intervals <- renderPlot({ 

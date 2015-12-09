@@ -191,10 +191,15 @@ p <- ggplot (data = data_bedGr) +
 p
 p_bedGraph <- p + theme(strip.background = element_blank(),
        strip.text.x = element_blank())
+
+# http://www.r-bloggers.com/r-recipe-aligning-axes-in-ggplot2/
 library(gridExtra)
 p1 <- ggplot_gtable(ggplot_build(p_bed))
 p2 <- ggplot_gtable(ggplot_build(p_bedGraph))
-unit.pmax(p1$widths[2:3], p2$widths[2:3])
+maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3])
+p1$widths[2:3] <- maxWidth
+p2$widths[2:3] <- maxWidth
+
 grid.arrange(p1, p2, heights = c(2, 2)) 
 
 ## Miscelanea
