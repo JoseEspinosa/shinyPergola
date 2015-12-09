@@ -134,6 +134,48 @@ ggplot(df.data_bed_filt) +
   geom_linerange(aes(x =  new_id, ymin = start, ymax = end), size =30) + coord_flip()
 
 
+
+### Reading BEDGRAPH files
+path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
+
+colours_v <- c("darkgreen", "red", "magenta", "black") 
+
+setwd(path_files)
+list_files_bedGr <-list.files(path=path_files ,pattern = ".bedGraph$")
+# list_files_bedGr
+
+nAnimals <- 4
+
+#Label by experimental group (control, free choice, force diet...)
+id <- c (1 : nAnimals)
+group <- c (rep (controlGroupLabel, nAnimals/2), rep (caseGroupLabel, nAnimals/2))
+df.id_group <- data.frame (id, group)
+df.id_group$group [which (id %% 2 != 0)] <- controlGroupLabel
+df.id_group$group [which (id %% 2 == 0)] <- caseGroupLabel
+
+data_bedGr = do.call (rbind, lapply (list_files_bedGr, y <- function (x) { data <- read.table (x)
+                                                                   id <- gsub("(^tr_)(\\d+)(_.+$)", "\\2", x)
+                                                                   data$id <- id                                                                   
+                                                                   return (data) }))
+head (data_bedGr)
+source("http://bioconductor.org/biocLite.R")
+biocLite("Sushi")
+library("Sushi")
+
+head (data_bedGr)
+colnames (data_bedGr) <- c("chrom", "start", "end", "value", "id")
+data_bedGr$id <- as.numeric (data_bedGr$id)
+tr_1 <- data_bedGr [which (data_bedGr$id == 1),]
+head (tr_1)
+plotBedgraph(tr_1, "chr1", 100,915000)
+
+p <- ggplot (data = tr_1, fill=group) + 
+#      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
+     geom_rect (aes(xmin = start, xmax = end, ymin = id, ymax = id + value)) 
+p
+library("gridExtra")
+grid.arrange(p,p, heights = c(5/10, 5/10)) 
+## Miscelanea
 # Create and IRanges object from a data frame coming from a bed file
 # bedRanges <- with(df.data_bed_filt, GRanges(chr, IRanges(start+1, end), strand, value, duration, rate, group,  id=id))
 # eventually use makeGRangesFromDataFrame 
