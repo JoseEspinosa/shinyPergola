@@ -50,6 +50,28 @@ df.data_bed$id <- as.numeric (df.data_bed$id)
 min_tr <- min(df.data_bed$id)
 
 head (df.data_bed)
+
+## Bedgraph files
+list_files_bedGr <- list.files (path=path_files ,pattern = ".bedGraph$")
+
+nAnimals <- 4
+
+#Label by experimental group (control, free choice, force diet...)
+id <- c (1 : nAnimals)
+group <- c (rep (controlGroupLabel, nAnimals/2), rep (caseGroupLabel, nAnimals/2))
+df.id_group <- data.frame (id, group)
+df.id_group$group [which (id %% 2 != 0)] <- controlGroupLabel
+df.id_group$group [which (id %% 2 == 0)] <- caseGroupLabel
+
+data_bedGr = do.call (rbind, lapply (list_files_bedGr, y <- function (x) { data <- read.table (x)
+                                                                           id <- gsub("(^tr_)(\\d+)(_.+$)", "\\2", x)
+                                                                           data$id <- id                                                                   
+                                                                           return (data) }))
+
+data_bedGr <- merge (data_bedGr, df.id_group, by.x= "id", by.y = "id")
+colnames (data_bedGr) <- c("id", "chrom", "start", "end", "value", "group")
+data_bedGr$id <- as.numeric (data_bedGr$id)
+
 # Define server logic required to plot various variables against mpg
 shinyServer(function(input, output) {
   
@@ -76,6 +98,12 @@ shinyServer(function(input, output) {
                          df.data_bed$end < min( pos() + input$windowsize, max(df.data_bed$end))),]
     df.data_f
   })
+
+  dataBedgraph <- reactive({    
+    df.dataBedgraph_f <- data_bedGr [which (data_bedGr$start > max( pos() - input$windowsize, 0 ) & 
+                                            data_bedGr$end < min( pos() + input$windowsize, max(data_bedGr$end))),]
+    df.dataBedgraph_f 
+  })
   
   # Intervals plot
   # Next step colour by group
@@ -91,8 +119,17 @@ shinyServer(function(input, output) {
 #       coord_flip()
      
     print (p)
-  }) 
+  })
 
+  #bedGraph plot
+  output$bedgraph <- renderPlot({ 
+    p <- ggplot (data = dataBedgraph(), fill=group) + 
+         geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value)) + 
+         facet_wrap(~ id, ncol= 1) + theme(strip.background = element_blank(),
+         strip.text.x = element_blank())
+    print (p)
+  })
+  
   df_mean  <- reactive({
 #     with (data() , aggregate (cbind (value), list (group=group), mean))
     df_t <- with (data(), aggregate (cbind (value, duration, rate), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x), length(x))))

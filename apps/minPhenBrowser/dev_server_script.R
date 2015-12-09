@@ -158,13 +158,20 @@ data_bedGr = do.call (rbind, lapply (list_files_bedGr, y <- function (x) { data 
                                                                    data$id <- id                                                                   
                                                                    return (data) }))
 head (data_bedGr)
-source("http://bioconductor.org/biocLite.R")
-biocLite("Sushi")
-library("Sushi")
+data_bedGr <- merge (data_bedGr, df.id_group, by.x= "id", by.y = "id")
 
 head (data_bedGr)
-colnames (data_bedGr) <- c("chrom", "start", "end", "value", "id")
+colnames (data_bedGr) <- c("id", "chrom", "start", "end", "value", "group")
 data_bedGr$id <- as.numeric (data_bedGr$id)
+
+# source("http://bioconductor.org/biocLite.R")
+# biocLite("Sushi")
+# library("Sushi")
+
+
+df.dataBedgraph_f <- data_bedGr[which (data_bedGr$start > max( pos - input_windowsize, 0 ) & 
+                                         data_bedGr$end < min( pos + input_windowsize, max(data_bedGr$end))),]
+
 tr_1 <- data_bedGr [which (data_bedGr$id == 1),]
 head (tr_1)
 plotBedgraph(tr_1, "chr1", 100,915000)
@@ -181,7 +188,8 @@ p <- ggplot (data = data_bedGr, fill=group) +
   #      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
   geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value)) + 
   facet_wrap(~ id, ncol= 1)
-p
+p+ theme(strip.background = element_blank(),
+       strip.text.x = element_blank())
 
 ## Miscelanea
 # Create and IRanges object from a data frame coming from a bed file
