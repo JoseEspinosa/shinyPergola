@@ -25,7 +25,7 @@ shinyUI(pageWithSidebar(
                 max = 1000000,
                 value =1000,
                 step = 300),
-    uiOutput("bedGraphRange"),
+    uiOutput("bedGraphLim"),
     uiOutput("idSelect"),
     uiOutput("genomicPositionSelect")
   ),
