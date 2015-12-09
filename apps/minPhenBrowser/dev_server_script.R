@@ -123,10 +123,10 @@ df.data_bed_filt
 
 unique(df.data_bed_filt$new_id)
 unique(df.data_bed_filt$new_id) + 0.5
-ggplot(df.data_bed_filt) + 
-  geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9)) +
+p_bed<- ggplot(df.data_bed_filt) + 
+  geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9, fill=group)) 
 #   geom_bar(aes(xmin = start, xmax = end, ymin = group_id, ymax = group_id + 0.9)) +
-  scale_y_continuous(limits=c(1, n_tracks+1), labels=new_id)
+#   scale_y_continuous(limits=c(1, n_tracks+1), labels=new_id)
 +
   theme_bw()
 
@@ -184,12 +184,18 @@ library("gridExtra")
 grid.arrange(p,p, heights = c(5/10, 5/10)) 
 
 # Using facet to do vertical ploting of bedgraph files
-p <- ggplot (data = data_bedGr, fill=group) + 
+p <- ggplot (data = data_bedGr) + 
   #      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
-  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value)) + 
+  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) + 
   facet_wrap(~ id, ncol= 1)
-p+ theme(strip.background = element_blank(),
+p
+p_bedGraph <- p + theme(strip.background = element_blank(),
        strip.text.x = element_blank())
+library(gridExtra)
+p1 <- ggplot_gtable(ggplot_build(p_bed))
+p2 <- ggplot_gtable(ggplot_build(p_bedGraph))
+unit.pmax(p1$widths[2:3], p2$widths[2:3])
+grid.arrange(p1, p2, heights = c(2, 2)) 
 
 ## Miscelanea
 # Create and IRanges object from a data frame coming from a bed file

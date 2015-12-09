@@ -105,30 +105,52 @@ shinyServer(function(input, output) {
     df.dataBedgraph_f 
   })
   
-  # Intervals plot
-  # Next step colour by group
-  output$intervals <- renderPlot({ 
-    p = ggplot(data = data()) +
+  interv_p <- reactive({ 
+    ggplot(data = data()) +
       geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9, fill=group)) +
       scale_fill_manual(values=colours_v) +
       scale_y_continuous(limits=c(min_tr, n_tracks + 1), breaks=unique(data()$new_id) + 0.5, labels=unique(data()$id))
     
-#     p = ggplot(data = data()) +
-#       geom_linerange(aes(x =  new_id, ymin = start, ymax = end, colour=group), size =30) + 
-#       scale_color_manual(values=colours_v) +
-#       coord_flip()
-     
-    print (p)
+    #     p = ggplot(data = data()) +
+    #       geom_linerange(aes(x =  new_id, ymin = start, ymax = end, colour=group), size =30) + 
+    #       scale_color_manual(values=colours_v) +
+    #       coord_flip()
+    
+#     print (p)
   })
 
+  # Intervals plot
+  # Next step colour by group
+#   output$intervals <- renderPlot({ 
+#     print (p_intervals())
+#   })
+
   #bedGraph plot
-  output$bedgraph <- renderPlot({ 
-    p <- ggplot (data = dataBedgraph(), fill=group) + 
+  bedgraph_p <- reactive({ 
+        ggplot (data = dataBedgraph(), fill=group) + 
          geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value)) + 
          facet_wrap(~ id, ncol= 1) + theme(strip.background = element_blank(),
          strip.text.x = element_blank())
-    print (p)
+#         print (p)
+      })
+
+  output$intervals <- renderPlot({ 
+    p1 <- ggplot_gtable(ggplot_build(interv_p()))
+    p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
+    maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3])
+    p1$widths[2:3] <- maxWidth
+    p2$widths[2:3] <- maxWidth
+    
+    grid.arrange(p1, p2, heights = c(2, 2)) 
   })
+
+#   output$bedgraph <- renderPlot({ 
+#     p <- ggplot (data = dataBedgraph(), fill=group) + 
+#          geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value)) + 
+#          facet_wrap(~ id, ncol= 1) + theme(strip.background = element_blank(),
+#          strip.text.x = element_blank())
+#     print (p)
+#   })
   
   df_mean  <- reactive({
 #     with (data() , aggregate (cbind (value), list (group=group), mean))
