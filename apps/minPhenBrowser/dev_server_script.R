@@ -69,9 +69,10 @@ n_tracks <- length(unique(df.data_bed$id))
 
 df.data_bed_filt <- df.data_bed [which (df.data_bed$start > ini_window & df.data_bed$end < end_window),]
 # pos <- 1000
-pos <- 1000000
-# input_windowsize <- 1001
-input_windowsize <- 100100
+# pos <- 1000000
+pos <- 569000
+input_windowsize <- 1001
+# input_windowsize <- 100100
 
 df.data_bed_filt <- df.data_bed [which (df.data_bed$start > max( pos - input_windowsize, 0 ) & 
                       df.data_bed$end < min( pos + input_windowsize, max(df.data_bed$end))),]
@@ -163,6 +164,10 @@ data_bedGr <- merge (data_bedGr, df.id_group, by.x= "id", by.y = "id")
 head (data_bedGr)
 colnames (data_bedGr) <- c("id", "chrom", "start", "end", "value", "group")
 data_bedGr$id <- as.numeric (data_bedGr$id)
+data_bedGr$value[1]<-  -3.5
+# if (any (data_bedGr$value < 0))
+min_v <- floor (min (data_bedGr$value))
+max_v <- ceiling (max(data_bedGr$value))
 
 # source("http://bioconductor.org/biocLite.R")
 # biocLite("Sushi")
@@ -174,7 +179,8 @@ df.dataBedgraph_f <- data_bedGr[which (data_bedGr$start > max( pos - input_windo
 
 tr_1 <- data_bedGr [which (data_bedGr$id == 1),]
 head (tr_1)
-plotBedgraph(tr_1, "chr1", 100,915000)
+# library("Sushi")
+# plotBedgraph(tr_1, "chr1", 100,915000)
 
 p <- ggplot (data = tr_1, fill=group) + 
 #      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
@@ -183,15 +189,24 @@ p
 library("gridExtra")
 grid.arrange(p,p, heights = c(5/10, 5/10)) 
 
+# input_bedGraphRange <- c(-4, 0.5)
+input_bedGraphRange <- c(-2, 0.5)
+input_bedGraphRange <- c(-1.7, 0.5)
+
+df.dataBedgraph_f [df.dataBedgraph_f$value < input_bedGraphRange [1], "value"] <- input_bedGraphRange[1]+0.001
+df.dataBedgraph_f [which (df.dataBedgraph_f$value > input_bedGraphRange [2]), "value"] <- input_bedGraphRange [2] - 0.001
+
 # Using facet to do vertical ploting of bedgraph files
-p <- ggplot (data = data_bedGr) + 
+p <- ggplot (data = df.dataBedgraph_f) + 
   #      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
-  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) + 
+  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
+  scale_y_continuous(limits=input_bedGraphRange, breaks=input_bedGraphRange, labels=input_bedGraphRange)  + 
   facet_wrap(~ id, ncol= 1)
 p
+
 p_bedGraph <- p + theme(strip.background = element_blank(),
        strip.text.x = element_blank())
-
+p_bedGraph
 # http://www.r-bloggers.com/r-recipe-aligning-axes-in-ggplot2/
 library(gridExtra)
 p1 <- ggplot_gtable(ggplot_build(p_bed))

@@ -71,6 +71,8 @@ data_bedGr = do.call (rbind, lapply (list_files_bedGr, y <- function (x) { data 
 data_bedGr <- merge (data_bedGr, df.id_group, by.x= "id", by.y = "id")
 colnames (data_bedGr) <- c("id", "chrom", "start", "end", "value", "group")
 data_bedGr$id <- as.numeric (data_bedGr$id)
+min_v <- floor (min (data_bedGr$value))
+max_v <- ceiling (max(data_bedGr$value))
 
 # Define server logic required to plot various variables against mpg
 shinyServer(function(input, output) {
@@ -84,9 +86,9 @@ shinyServer(function(input, output) {
     sliderInput( "tpos", "Time Point:", min = 10, max = max(df.data_bed$end) - 10, value = 569984 )
   })
   
-  output$bedGraphLim <- renderUI({
-    sliderInput("bedGraphLim", "Range bedgraph:", 
-                min = 0, max = 4, value = c(0.5), step= 0.1)
+  output$bedGraphRange <- renderUI({
+    sliderInput("bedGraphRange", "Range bedgraph:", 
+                min = min_v, max = max_v, value = c(0, 0.5), step= 0.1)
   }) 
   
   pos <-  reactive({
@@ -107,9 +109,15 @@ shinyServer(function(input, output) {
   dataBedgraph <- reactive({    
     df.dataBedgraph_f <- data_bedGr [which (data_bedGr$start > max( pos() - input$windowsize, 0 ) & 
                                             data_bedGr$end < min( pos() + input$windowsize, max(data_bedGr$end))),]
-    df.dataBedgraph_f 
+    df.dataBedgraph_f [which (df.dataBedgraph_f$value < input$bedGraphRange [1]), "value"] <- input$bedGraphRange [1] + 0.001
+    df.dataBedgraph_f [which (df.dataBedgraph_f$value > input$bedGraphRange [2]), "value"] <- input$bedGraphRange [2] - 0.001
+#     df.dataBedgraph_f [df.dataBedgraph_f$value < input_bedGraphRange [1], "value"] <- input_bedGraphRange[1]+0.001
+#     df.dataBedgraph_f [which (df.dataBedgraph_f$value > input_bedGraphRange [2]), "value"] <- input_bedGraphRange [2] - 0.001
+    
+    df.dataBedgraph_f
   })
   
+  # Intervals plot
   interv_p <- reactive({ 
     ggplot(data = data()) +
       geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9, fill=group)) +
@@ -120,22 +128,14 @@ shinyServer(function(input, output) {
     #       geom_linerange(aes(x =  new_id, ymin = start, ymax = end, colour=group), size =30) + 
     #       scale_color_manual(values=colours_v) +
     #       coord_flip()
-    
-#     print (p)
   })
-
-  # Intervals plot
-  # Next step colour by group
-#   output$intervals <- renderPlot({ 
-#     print (p_intervals())
-#   })
 
   #bedGraph plot
   bedgraph_p <- reactive({ 
         ggplot (data = dataBedgraph()) + 
         geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
         scale_fill_manual(values=colours_v) +
-        scale_y_continuous(limits=c(0,input$bedGraphLim), breaks=input$bedGraphLim, labels=input$bedGraphLim)  + 
+        scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
         facet_wrap(~ id, ncol= 1) + 
         theme(strip.background = element_blank(), strip.text.x = element_blank())
       })
@@ -149,14 +149,6 @@ shinyServer(function(input, output) {
     
     grid.arrange(p1, p2, heights = c(2, 2)) 
   })
-
-#   output$bedgraph <- renderPlot({ 
-#     p <- ggplot (data = dataBedgraph(), fill=group) + 
-#          geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value)) + 
-#          facet_wrap(~ id, ncol= 1) + theme(strip.background = element_blank(),
-#          strip.text.x = element_blank())
-#     print (p)
-#   })
   
   df_mean  <- reactive({
 #     with (data() , aggregate (cbind (value), list (group=group), mean))
