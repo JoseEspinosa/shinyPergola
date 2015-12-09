@@ -175,6 +175,14 @@ p <- ggplot (data = tr_1, fill=group) +
 p
 library("gridExtra")
 grid.arrange(p,p, heights = c(5/10, 5/10)) 
+
+# Using facet to do vertical ploting of bedgraph files
+p <- ggplot (data = data_bedGr, fill=group) + 
+  #      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
+  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value)) + 
+  facet_wrap(~ id, ncol= 1)
+p
+
 ## Miscelanea
 # Create and IRanges object from a data frame coming from a bed file
 # bedRanges <- with(df.data_bed_filt, GRanges(chr, IRanges(start+1, end), strand, value, duration, rate, group,  id=id))
