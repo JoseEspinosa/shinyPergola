@@ -2,6 +2,7 @@ library(shiny)
 # library(datasets)
 library (plotrix) #std.err # mirar si la utilizo
 library (ggplot2)
+library(grid)
 
 source ("/Users/jespinosa/git/phecomp/lib/R/plotParamPublication.R")
 
