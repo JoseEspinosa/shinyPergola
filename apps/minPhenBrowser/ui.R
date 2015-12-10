@@ -27,16 +27,22 @@ shinyUI(pageWithSidebar(
                 step = 300),
     uiOutput("bedGraphRange"),
     uiOutput("idSelect"),
-    uiOutput("genomicPositionSelect")
+    uiOutput("genomicPositionSelect"),
+    
+    fileInput('file1', 'Choose CSV File', accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+    tags$hr(),
+    checkboxInput('header', 'Header', TRUE),
+    radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), ','),
+    radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"') 
   ),
   
   mainPanel(
     textOutput("text1"),
     plotOutput("intervals", height=400),
-#     plotOutput("bedgraph", height=400),
     plotOutput("barPlotValue", height=400),
     plotOutput("barPlotDuration", height=400),
     plotOutput("barPlotN", height=400),
-    plotOutput("barPlotRate", height=400)    
+    plotOutput("barPlotRate", height=400),
+    tableOutput('fileEnv')
   )
 ))
