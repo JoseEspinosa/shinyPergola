@@ -145,11 +145,20 @@ shinyServer(function(input, output) {
     df.dataBedgraph_f
   })
   
+  range_x <- reactive({
+    c (max( pos() - input$windowsize, 0 ), min( pos() + input$windowsize, max(as.numeric(data()$end))))
+#     rbind(c (max( pos() - input$windowsize, 0 ), min( pos() + input$windowsize, max(as.numeric(data()$end)))),
+#           c (max( pos() - input$windowsize, 0 ), min( pos() + input$windowsize, max(as.numeric(dataBedgraph()$end)))),
+#           c (min(data()$start), max(data()$end)),
+#           c (min(dataBedgraph()$start), max(dataBedgraph()$end)),
+#           c (min(data()$start, dataBedgraph()$start), max(data()$end, dataBedgraph()$end)))
+  })  
+  
   dfFileEnv_range <- reactive({    
     if (is.null(dfFileEnv())) return(NULL)
     
-    range_win <- c (max( pos() - input$windowsize, 0 ), min( pos() + input$windowsize, max(as.numeric(dfFileEnv()$V3))))
-                                                        
+#     range_win <- c (max( pos() - input$windowsize, 0 ), min( pos() + input$windowsize, max(as.numeric(dfFileEnv()$V3))))
+    range_win <- range_x()                                                    
     range_r <- dfFileEnv()[1,] 
     
     range_r$V2 <- range_win[1] 
@@ -159,32 +168,48 @@ shinyServer(function(input, output) {
     ranges_i <- ranges [with(ranges, V2A >= V2B & V3A <= V3B),][,c(0:10)] 
     
     # left thresholding
-    ranges_l <- ranges [with(ranges, V2A < V2B & V3A < V3B),][,c(0:10)]
-    ranges_l$V2A <- range_win[1] + 0.001
+    ranges_l <- ranges [with(ranges, V2A < V2B & V3A > V2B),][,c(0:10)]
     
     # right thresholding
+    # range_win <- c(568984.00, 570925.00)
     ranges_r <- ranges [with(ranges, V2A < V3B & V3A > V3B),][,c(0:10)]
-    ranges_r$V3A <- range_win[2] - 0.001
+    
+    if (all.equal (ranges_l,ranges_r) == TRUE ) {
+      ranges_r <- data.frame()
+      ranges_l$V2A <- range_win[1]+0.001
+      ranges_l$V3A <- range_win[2]-0.001
+    }
+    
+    if (nrow (ranges_l) != 0) {
+      ranges_l$V2A <- range_win[1]+0.001
+    }
+    
+    if (nrow (ranges_r) != 0) {
+      ranges_r$V3A <- range_win[2]-0.001
+    }
+    
     ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
+
     ranges_p 
   })
   
-  output$fileEnv <- renderTable({
-    dfFileEnv_range()
+  output$bed <- renderTable({
+    as.data.frame(dfFileEnv_range())
   })
-
+#   output$bedgraph <- renderTable({
+#     dataBedgraph()
+#   })
+#   output$fileEnv <- renderTable({
+#     dfFileEnv_range()
+#   })
 
   # Intervals plot
   interv_p <- reactive({ 
     ggplot(data = data()) +
       geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9, fill=group)) +
       scale_fill_manual(values=colours_v) +
-      scale_y_continuous(limits=c(min_tr, n_tracks + 1), breaks=unique(data()$new_id) + 0.5, labels=unique(data()$id))
-    
-    #     p = ggplot(data = data()) +
-    #       geom_linerange(aes(x =  new_id, ymin = start, ymax = end, colour=group), size =30) + 
-    #       scale_color_manual(values=colours_v) +
-    #       coord_flip()
+      scale_y_continuous(limits=c(min_tr, n_tracks + 1), breaks=unique(data()$new_id) + 0.5, labels=unique(data()$id)) +
+      scale_x_continuous(limits=range_x()) 
   })
 
   #bedGraph plot
@@ -193,41 +218,57 @@ shinyServer(function(input, output) {
     geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
     scale_fill_manual(values=colours_v) +
     scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
+    scale_x_continuous(limits=range_x()) +
     facet_wrap(~group_id, ncol= 1) + 
     theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
   })
   
   # Environmental info plot
-  output$envInfo <- renderPlot({ 
+  env_p <- reactive ({ 
 #   env_p <- reactive({ 
     if (is.null (dfFileEnv_range())) {
       return (NULL)
     }
     else {
-      p = ggplot (data = dfFileEnv_range()) + 
+      ggplot (data = dfFileEnv_range()) + 
         geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=idA)) +
+        scale_x_continuous(limits=range_x()) +
   #       scale_fill_manual(values=colours_v) +
   #         scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
   #       facet_wrap(~group_id, ncol= 1) + 
         theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
-      print(p)  
     }
   }) 
   
   output$intervals <- renderPlot({ 
-    p1 <- ggplot_gtable(ggplot_build(interv_p()))
-    p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
-#     p3 <- ggplot_gtable(ggplot_build(env_p()))
-    
-    maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3])
-#     maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
-
-    p1$widths[2:3] <- maxWidth
-    p2$widths[2:3] <- maxWidth
-#     p3$widths[2:3] <- maxWidth
-    
-#     grid.arrange(p1, p2, p3, heights = c(2, 2))
-    grid.arrange(p1, p2, heights = c(2, 2)) 
+    if (is.null (env_p())) {
+        p1 <- ggplot_gtable(ggplot_build(interv_p()))
+        p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
+  #     p3 <- ggplot_gtable(ggplot_build(env_p()))
+      
+      maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3])
+  #     maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
+  
+      p1$widths[2:3] <- maxWidth
+      p2$widths[2:3] <- maxWidth
+  #     p3$widths[2:3] <- maxWidth
+      
+  #     grid.arrange(p1, p2, p3, heights = c(2, 2))
+      grid.arrange(p1, p2, heights = c(2, 2)) 
+    }
+    else {
+      p1 <- ggplot_gtable(ggplot_build(interv_p()))
+      p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
+      p3 <- ggplot_gtable(ggplot_build(env_p()))
+      
+      maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
+      
+      p1$widths[2:3] <- maxWidth
+      p2$widths[2:3] <- maxWidth
+      p3$widths[2:3] <- maxWidth
+        
+      grid.arrange(p1, p2, p3, heights = c(2, 2, 2))
+    }
   })
   
   df_mean  <- reactive({

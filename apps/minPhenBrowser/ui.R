@@ -39,11 +39,13 @@ shinyUI(pageWithSidebar(
   mainPanel(
     textOutput("text1"),
     plotOutput("intervals", height=400),
-    plotOutput("envInfo", height=400),
+    plotOutput("envInfo", height=20),
     plotOutput("barPlotValue", height=400),
     plotOutput("barPlotDuration", height=400),
     plotOutput("barPlotN", height=400),
     plotOutput("barPlotRate", height=400),
-    tableOutput('fileEnv')
+    tableOutput('bed')
+#     tableOutput('bedgraph'),
+#     tableOutput('fileEnv')
   )
 ))

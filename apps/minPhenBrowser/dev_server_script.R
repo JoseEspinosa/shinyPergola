@@ -276,6 +276,8 @@ ranges_r <- ranges [with(ranges, V2A < V3B & V3A > V3B),][,c(0:10)]
 
 if (all.equal (ranges_l,ranges_r) == TRUE ) {
   ranges_r <- data.frame()
+  ranges_l$V2A <- range_win[1]+0.001
+  ranges_l$V3A <- range_win[2]-0.001
 }
 
 if (nrow (ranges_l) != 0) {
@@ -286,14 +288,12 @@ if (nrow (ranges_r) != 0) {
   ranges_r$V3A <- range_win[2]-0.001
 }
 
-
-
 ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
 
-if (length(ranges_p[,1]) == 1) {
-  ranges_p$V2A <- range_win[1]+0.001
-  ranges_p$V3A <- range_win[2]-0.001
-}
+# if (length(ranges_p[,1]) == 1) {
+#   ranges_p$V2A <- range_win[1]+0.001
+#   ranges_p$V3A <- range_win[2]-0.001
+# }
 
 # ranges_p$id <- as.factor (c(1:length(ranges_p[,1])))
 p = ggplot (data = ranges_p) + 
