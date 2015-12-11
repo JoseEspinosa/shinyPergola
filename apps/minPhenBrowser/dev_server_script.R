@@ -244,13 +244,17 @@ grid.arrange(p1, p2, heights = c(2, 2))
 inFile_datapath <- "/Users/jespinosa/git/shinyPergola/data/bed4test/tr_1_3_2_5_4_7_6_9_8all_data_types.bed"
 input_header <- FALSE
 df_env <- read.table(inFile_datapath, header=input_header, sep="\t")
-df_env$id <- as.factor (c(1: length(df [,1])))
+df_env$id <- as.factor (c(1: length(df_env [,1])))
 df_env
 # df_env <- df_env [which (df_env$V2 > max( pos - input_windowsize, 0 ) & 
 #                                      df_env$V3 < min( pos + input_windowsize, max(df_env$V3))),]
 
 df_env
+# This values are not working debugging
+input_windowsize <- 1000000
+pos <- 780868
 range_win <- c (max( pos - input_windowsize, 0 ), min( pos + input_windowsize, max(df_env$V3)))
+# range_win <- c(568984.00, 570925.00)
 
 # From:
 # http://stackoverflow.com/questions/3916195/finding-overlap-in-ranges-with-r
@@ -264,17 +268,37 @@ ranges <- merge(df_env, range_r, by="V1",suffixes=c("A","B"))
 ranges_i <- ranges [with(ranges, V2A >= V2B & V3A <= V3B),][,c(0:10)] 
 
 # left thresholding
-ranges_l <- ranges [with(ranges, V2A < V2B & V3A < V3B),][,c(0:10)]
-ranges_l$V2A <- range_win[1]+0.001
+ranges_l <- ranges [with(ranges, V2A < V2B & V3A > V2B),][,c(0:10)]
 
 # right thresholding
+# range_win <- c(568984.00, 570925.00)
 ranges_r <- ranges [with(ranges, V2A < V3B & V3A > V3B),][,c(0:10)]
-ranges_r$V3A <- range_win[2]-0.001
+
+if (all.equal (ranges_l,ranges_r) == TRUE ) {
+  ranges_r <- data.frame()
+}
+
+if (nrow (ranges_l) != 0) {
+  ranges_l$V2A <- range_win[1]+0.001
+}
+
+if (nrow (ranges_r) != 0) {
+  ranges_r$V3A <- range_win[2]-0.001
+}
+
+
+
 ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
+
+if (length(ranges_p[,1]) == 1) {
+  ranges_p$V2A <- range_win[1]+0.001
+  ranges_p$V3A <- range_win[2]-0.001
+}
+
 # ranges_p$id <- as.factor (c(1:length(ranges_p[,1])))
 p = ggplot (data = ranges_p) + 
   geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=idA)) +
-  scale_x_continuous(limits=x_axis_r)
+  scale_x_continuous(limits=range_win)
   #       scale_fill_manual(values=colours_v) +
   #         scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
   #       facet_wrap(~group_id, ncol= 1) + 
