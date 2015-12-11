@@ -209,6 +209,7 @@ grid.arrange(p,p, heights = c(5/10, 5/10))
 input_bedGraphRange <- c(-2, 0.5)
 input_bedGraphRange <- c(-1.7, 0.5)
 
+# All values over the threshold are not shown becuase they are truncated, I set all to the value of the threshold
 df.dataBedgraph_f [df.dataBedgraph_f$value < input_bedGraphRange [1], "value"] <- input_bedGraphRange[1]+0.001
 df.dataBedgraph_f [which (df.dataBedgraph_f$value > input_bedGraphRange [2]), "value"] <- input_bedGraphRange [2] - 0.001
 
@@ -236,6 +237,49 @@ p1$widths[2:3] <- maxWidth
 p2$widths[2:3] <- maxWidth
 
 grid.arrange(p1, p2, heights = c(2, 2)) 
+
+
+############
+## Ploting environmental info
+inFile_datapath <- "/Users/jespinosa/git/shinyPergola/data/bed4test/tr_1_3_2_5_4_7_6_9_8all_data_types.bed"
+input_header <- FALSE
+df_env <- read.table(inFile_datapath, header=input_header, sep="\t")
+df_env$id <- as.factor (c(1: length(df [,1])))
+df_env
+# df_env <- df_env [which (df_env$V2 > max( pos - input_windowsize, 0 ) & 
+#                                      df_env$V3 < min( pos + input_windowsize, max(df_env$V3))),]
+
+df_env
+x_axis_r <- c (max( pos - input_windowsize, 0 ), min( pos + input_windowsize, max(df_env$V3)))
+
+# From:
+# http://stackoverflow.com/questions/3916195/finding-overlap-in-ranges-with-r
+
+range_r <- df_env[1,] 
+# x_axis_r <- c(1000,570000)
+range_r$V2 <- x_axis_r[1] 
+range_r$V3 <- x_axis_r[2]
+
+ranges <- merge(df_env, range_r, by="V1",suffixes=c("A","B"))
+ranges_i <- ranges [with(ranges, V2A >= V2B & V3A <= V3B),][,c(0:9)] 
+
+# left thresholding
+ranges_l <- ranges [with(ranges, V2A < V2B & V3A < V3B),][,c(0:9)]
+ranges_l$V2A <- x_axis_r[1]+0.001
+
+# right thresholding
+ranges_r <- ranges [with(ranges, V2A < V3B & V3A > V3B),][,c(0:9)]
+ranges_r$V3A <- x_axis_r[2]-0.001
+ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
+ranges_p$id <- as.factor (c(1:length(ranges_p[,1])))
+p = ggplot (data = ranges_p) + 
+  geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=id)) +
+  scale_x_continuous(limits=x_axis_r)
+  #       scale_fill_manual(values=colours_v) +
+  #         scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
+  #       facet_wrap(~group_id, ncol= 1) + 
+#   theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
+print(p)
 
 ## Miscelanea
 # Create and IRanges object from a data frame coming from a bed file
