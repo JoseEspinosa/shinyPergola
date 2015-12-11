@@ -29,16 +29,17 @@ shinyUI(pageWithSidebar(
     uiOutput("idSelect"),
     uiOutput("genomicPositionSelect"),
     
-    fileInput('file1', 'Choose CSV File', accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+    fileInput('fileEnv', 'Choose CSV File', accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
     tags$hr(),
-    checkboxInput('header', 'Header', TRUE),
-    radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), ','),
+    checkboxInput('header', 'Header', FALSE),
+    radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
     radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"') 
   ),
   
   mainPanel(
     textOutput("text1"),
     plotOutput("intervals", height=400),
+    plotOutput("envInfo", height=400),
     plotOutput("barPlotValue", height=400),
     plotOutput("barPlotDuration", height=400),
     plotOutput("barPlotN", height=400),

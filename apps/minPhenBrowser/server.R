@@ -107,21 +107,38 @@ shinyServer(function(input, output) {
     min( max( input$windowsize + 1, input$tpos ), max(df.data_bed$end) - input$windowsize - 1 )
   })
   
-  output$fileEnv <- renderTable({
+  # Hacer un reactive que lo meta en un table data!!!
+  dfFileEnv <- reactive ({
     
-    # input$file1 will be NULL initially. After the user selects
+    # input$fileEnv will be NULL initially. After the user selects
     # and uploads a file, it will be a data frame with 'name',
     # 'size', 'type', and 'datapath' columns. The 'datapath'
     # column will contain the local filenames where the data can
     # be found.
     
-    inFile <- input$file1
+    inFile <- input$fileEnv
     
     if (is.null(inFile))
       return(NULL)
     
-    read.csv(inFile$datapath, header=input$header, sep=input$sep, 
+    read.table(inFile$datapath, header=input$header, sep=input$sep, 
              quote=input$quote)
+  })
+  
+#   df.Env <-  reactive({
+#     if (is.null(input$$dfFileEnv)){
+#       NULL
+#     }
+#     else {
+# #     df.Env_id <- input$dfFileEnv [with (input$dfFileEnv, order(V2)), ] 
+#       df.Env_id <- input$dfFileEnv
+#       df.Env_id$id <- c(1:length (input$dfFileEnv))
+#       df.Env_id
+#     }
+#   })
+  
+  output$fileEnv <- renderTable({
+    dfFileEnv()
   })
 
   output$text1 <- renderText({ 
@@ -167,13 +184,30 @@ shinyServer(function(input, output) {
     theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
   })
 
+  output$envInfo <- renderPlot({ 
+#   env_p <- reactive({ 
+    p = ggplot (data = df.Env()) + 
+      geom_rect (aes(xmin = V2, xmax = V3, ymin = 0, ymax = 1, fill=id)) +
+#       scale_fill_manual(values=colours_v) +
+      scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
+#       facet_wrap(~group_id, ncol= 1) + 
+      theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
+    print(p)  
+  }) 
+  
   output$intervals <- renderPlot({ 
     p1 <- ggplot_gtable(ggplot_build(interv_p()))
     p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
+#     p3 <- ggplot_gtable(ggplot_build(env_p()))
+    
     maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3])
+#     maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
+
     p1$widths[2:3] <- maxWidth
     p2$widths[2:3] <- maxWidth
+#     p3$widths[2:3] <- maxWidth
     
+#     grid.arrange(p1, p2, p3, heights = c(2, 2))
     grid.arrange(p1, p2, heights = c(2, 2)) 
   })
   
@@ -211,7 +245,7 @@ shinyServer(function(input, output) {
       scale_fill_manual(values=colours_v) +
       labs (title = "Length\n") + 
       labs (x = "\nLength", y = "Group\n")
-  print(p) 
+    print(p) 
   })  
   
   # Number of events
