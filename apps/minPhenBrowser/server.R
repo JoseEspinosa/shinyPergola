@@ -118,29 +118,13 @@ shinyServer(function(input, output) {
     
     inFile <- input$fileEnv
     
-    if (is.null(inFile))
-      return(NULL)
+    if (is.null(inFile)) return(NULL)
     
-    read.table(inFile$datapath, header=input$header, sep=input$sep, 
-             quote=input$quote)
+    df <- read.table(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
+    df$id <- as.factor (c(1: length(df [,1])))
+    df
   })
   
-#   df.Env <-  reactive({
-#     if (is.null(input$$dfFileEnv)){
-#       NULL
-#     }
-#     else {
-# #     df.Env_id <- input$dfFileEnv [with (input$dfFileEnv, order(V2)), ] 
-#       df.Env_id <- input$dfFileEnv
-#       df.Env_id$id <- c(1:length (input$dfFileEnv))
-#       df.Env_id
-#     }
-#   })
-  
-  output$fileEnv <- renderTable({
-    dfFileEnv()
-  })
-
   output$text1 <- renderText({ 
 #    as.character (pos())
      paste (as.character (input$windowsize), as.character (pos()))
@@ -161,6 +145,35 @@ shinyServer(function(input, output) {
     df.dataBedgraph_f
   })
   
+  dfFileEnv_range <- reactive({    
+    if (is.null(dfFileEnv())) return(NULL)
+    
+    range_win <- c (max( pos() - input$windowsize, 0 ), min( pos() + input$windowsize, max(as.numeric(dfFileEnv()$V3))))
+                                                        
+    range_r <- dfFileEnv()[1,] 
+    
+    range_r$V2 <- range_win[1] 
+    range_r$V3 <- range_win[2]
+    
+    ranges <- merge(dfFileEnv(), range_r, by="V1",suffixes=c("A","B"))
+    ranges_i <- ranges [with(ranges, V2A >= V2B & V3A <= V3B),][,c(0:10)] 
+    
+    # left thresholding
+    ranges_l <- ranges [with(ranges, V2A < V2B & V3A < V3B),][,c(0:10)]
+    ranges_l$V2A <- range_win[1] + 0.001
+    
+    # right thresholding
+    ranges_r <- ranges [with(ranges, V2A < V3B & V3A > V3B),][,c(0:10)]
+    ranges_r$V3A <- range_win[2] - 0.001
+    ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
+    ranges_p 
+  })
+  
+  output$fileEnv <- renderTable({
+    dfFileEnv_range()
+  })
+
+
   # Intervals plot
   interv_p <- reactive({ 
     ggplot(data = data()) +
@@ -183,16 +196,22 @@ shinyServer(function(input, output) {
     facet_wrap(~group_id, ncol= 1) + 
     theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
   })
-
+  
+  # Environmental info plot
   output$envInfo <- renderPlot({ 
 #   env_p <- reactive({ 
-    p = ggplot (data = df.Env()) + 
-      geom_rect (aes(xmin = V2, xmax = V3, ymin = 0, ymax = 1, fill=id)) +
-#       scale_fill_manual(values=colours_v) +
-      scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
-#       facet_wrap(~group_id, ncol= 1) + 
-      theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
-    print(p)  
+    if (is.null (dfFileEnv_range())) {
+      return (NULL)
+    }
+    else {
+      p = ggplot (data = dfFileEnv_range()) + 
+        geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=idA)) +
+  #       scale_fill_manual(values=colours_v) +
+  #         scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
+  #       facet_wrap(~group_id, ncol= 1) + 
+        theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
+      print(p)  
+    }
   }) 
   
   output$intervals <- renderPlot({ 

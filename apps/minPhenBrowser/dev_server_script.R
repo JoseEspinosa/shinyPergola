@@ -250,30 +250,30 @@ df_env
 #                                      df_env$V3 < min( pos + input_windowsize, max(df_env$V3))),]
 
 df_env
-x_axis_r <- c (max( pos - input_windowsize, 0 ), min( pos + input_windowsize, max(df_env$V3)))
+range_win <- c (max( pos - input_windowsize, 0 ), min( pos + input_windowsize, max(df_env$V3)))
 
 # From:
 # http://stackoverflow.com/questions/3916195/finding-overlap-in-ranges-with-r
 
 range_r <- df_env[1,] 
 # x_axis_r <- c(1000,570000)
-range_r$V2 <- x_axis_r[1] 
-range_r$V3 <- x_axis_r[2]
+range_r$V2 <- range_win[1] 
+range_r$V3 <- range_win[2]
 
 ranges <- merge(df_env, range_r, by="V1",suffixes=c("A","B"))
-ranges_i <- ranges [with(ranges, V2A >= V2B & V3A <= V3B),][,c(0:9)] 
+ranges_i <- ranges [with(ranges, V2A >= V2B & V3A <= V3B),][,c(0:10)] 
 
 # left thresholding
-ranges_l <- ranges [with(ranges, V2A < V2B & V3A < V3B),][,c(0:9)]
-ranges_l$V2A <- x_axis_r[1]+0.001
+ranges_l <- ranges [with(ranges, V2A < V2B & V3A < V3B),][,c(0:10)]
+ranges_l$V2A <- range_win[1]+0.001
 
 # right thresholding
-ranges_r <- ranges [with(ranges, V2A < V3B & V3A > V3B),][,c(0:9)]
-ranges_r$V3A <- x_axis_r[2]-0.001
+ranges_r <- ranges [with(ranges, V2A < V3B & V3A > V3B),][,c(0:10)]
+ranges_r$V3A <- range_win[2]-0.001
 ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
-ranges_p$id <- as.factor (c(1:length(ranges_p[,1])))
+# ranges_p$id <- as.factor (c(1:length(ranges_p[,1])))
 p = ggplot (data = ranges_p) + 
-  geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=id)) +
+  geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=idA)) +
   scale_x_continuous(limits=x_axis_r)
   #       scale_fill_manual(values=colours_v) +
   #         scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
