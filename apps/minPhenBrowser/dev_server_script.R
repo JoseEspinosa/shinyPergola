@@ -74,6 +74,9 @@ pos <- 569000
 # input_windowsize <- 1001
 input_windowsize <- 100100
 
+pos <- 1000
+input_windowsize <- 10000000
+
 df.data_bed_filt <- df.data_bed [which (df.data_bed$start > max( pos - input_windowsize, 0 ) & 
                       df.data_bed$end < min( pos + input_windowsize, max(df.data_bed$end))),]
 head (df.data_bed_filt)
@@ -99,7 +102,6 @@ p = ggplot(data = df.mean_bad, aes(x=group, y=meanValue, fill=group)) +
     geom_errorbar(aes(ymin=meanValue-std.errorValue, ymax=meanValue+std.errorValue), width=.2, position=position_dodge(.9))
 
 p  
-
 
 # Example extracted from another script
 # ggplot(data=tbl_stat_mean, aes(x=index, y=mean, fill=group2)) + 

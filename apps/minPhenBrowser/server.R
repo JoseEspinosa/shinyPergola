@@ -209,7 +209,8 @@ shinyServer(function(input, output) {
       geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9, fill=group)) +
       scale_fill_manual(values=colours_v) +
       scale_y_continuous(limits=c(min_tr, n_tracks + 1), breaks=unique(data()$new_id) + 0.5, labels=unique(data()$id)) +
-      scale_x_continuous(limits=range_x()) 
+      scale_x_continuous(limits=range_x(), breaks =NULL) +
+      theme(legend.position="none", axis.line.x=element_blank())
   })
 
   #bedGraph plot
@@ -218,9 +219,10 @@ shinyServer(function(input, output) {
     geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
     scale_fill_manual(values=colours_v) +
     scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
-    scale_x_continuous(limits=range_x()) +
+    scale_x_continuous(limits=range_x(), breaks=NULL) +
     facet_wrap(~group_id, ncol= 1) + 
-    theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
+    theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10), 
+          legend.position="none", axis.line.x=element_blank()) 
   })
   
   # Environmental info plot
@@ -232,11 +234,14 @@ shinyServer(function(input, output) {
     else {
       ggplot (data = dfFileEnv_range()) + 
         geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=idA)) +
+        scale_y_continuous(breaks=NULL) +
         scale_x_continuous(limits=range_x()) +
   #       scale_fill_manual(values=colours_v) +
   #         scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
   #       facet_wrap(~group_id, ncol= 1) + 
-        theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10)) 
+      theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10), 
+            legend.position="none", axis.text.y=element_blank())
+#               axis.text.y = element_text(size=10), axis.line.y=element_blank(),axis.text.y=element_blank()) 
     }
   }) 
   
@@ -267,7 +272,7 @@ shinyServer(function(input, output) {
       p2$widths[2:3] <- maxWidth
       p3$widths[2:3] <- maxWidth
         
-      grid.arrange(p1, p2, p3, heights = c(2, 2, 2))
+      grid.arrange(p1, p2, p3, heights = c(2, 2, 1))
     }
   })
   
