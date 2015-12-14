@@ -29,7 +29,7 @@ shinyUI(pageWithSidebar(
     uiOutput("idSelect"),
     uiOutput("genomicPositionSelect"),
     
-    fileInput('fileEnv', 'Choose CSV File', accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+    fileInput('fileEnv', 'Choose CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
     tags$hr(),
     checkboxInput('header', 'Header', FALSE),
     radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
@@ -37,7 +37,7 @@ shinyUI(pageWithSidebar(
   ),
   
   mainPanel(
-    textOutput("text1"),
+#     textOutput("text1"),
     plotOutput("intervals", height=400),
     plotOutput("envInfo", height=20),
     plotOutput("barPlotValue", height=400),
