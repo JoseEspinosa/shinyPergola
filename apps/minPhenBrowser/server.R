@@ -194,7 +194,7 @@ shinyServer(function(input, output) {
     }
     
     ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
-
+    levels(ranges_p$V1) <- c("Env1")
     ranges_p 
   })
   
@@ -218,7 +218,7 @@ shinyServer(function(input, output) {
       scale_fill_manual(values=colours_v) +
 #       scale_y_continuous(limits=c(min_tr, n_tracks + 1), breaks=unique(data()$new_id) + 0.5, labels=unique(data()$id)) +
       scale_y_continuous(limits=c(0,1), breaks=NULL, labels=unique(data()$id))  +
-#       scale_x_continuous(limits=range_x(), breaks =NULL) +
+      scale_x_continuous(limits=range_x(), breaks =NULL) +
       theme(axis.text.y = element_text(size=10), #strip.background = element_blank(),
             legend.position="none", axis.line.x=element_blank(), strip.text.x = element_blank()) +
 #       facet_wrap(~ group_id, ncol= 1)
@@ -231,7 +231,8 @@ shinyServer(function(input, output) {
     geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
     scale_fill_manual(values=colours_v) +
     scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
-    scale_x_continuous(limits=range_x(), breaks=NULL) +
+#     scale_x_continuous(limits=range_x(), breaks=NULL) +
+    scale_x_continuous(limits=range_x()) +
 #     facet_wrap(~group_id, ncol= 1) + 
     facet_grid(group_id ~ .) +
     theme(axis.text.y = element_text(size=10), #strip.background = element_blank(), 
@@ -249,10 +250,11 @@ shinyServer(function(input, output) {
         geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=idA)) +
         scale_y_continuous(breaks=NULL) +
         scale_x_continuous(limits=range_x()) +
+        facet_grid(V1 ~ .) +
   #       scale_fill_manual(values=colours_v) +
   #         scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
   #       facet_wrap(~group_id, ncol= 1) + 
-      theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10), 
+      theme(strip.text.x = element_blank(), axis.text.y = element_text(size=10), #strip.background = element_blank(),
             legend.position="none", axis.text.y=element_blank())
 #               axis.text.y = element_text(size=10), axis.line.y=element_blank(),axis.text.y=element_blank()) 
     }

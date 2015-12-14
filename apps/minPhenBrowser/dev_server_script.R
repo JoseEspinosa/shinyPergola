@@ -325,9 +325,11 @@ ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
 # }
 
 # ranges_p$id <- as.factor (c(1:length(ranges_p[,1])))
+levels(ranges_p$V1) <- c("Env1")
 p = ggplot (data = ranges_p) + 
   geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=idA)) +
-  scale_x_continuous(limits=range_win)
+  scale_x_continuous(limits=range_win) +
+  facet_grid(V1 ~ .)
   #       scale_fill_manual(values=colours_v) +
   #         scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
   #       facet_wrap(~group_id, ncol= 1) + 
