@@ -49,8 +49,13 @@ df.data_bed$rate <- df.data_bed$value / df.data_bed$duration
 df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
                             labels=c("control", "case"))
 
-df.data_bed$id <- as.numeric (df.data_bed$id)
-min_tr <- min(df.data_bed$id)
+df.data_bed$n_group <- c(1:length (df.data_bed$group))
+df.data_bed$n_group [df.data_bed$group == controlGroupLabel] <- 1
+df.data_bed$n_group [df.data_bed$group == caseGroupLabel] <- 2
+df.data_bed$group_id <- paste (df.data_bed$n_group, df.data_bed$id, sep="_")
+
+# df.data_bed$id <- as.numeric (df.data_bed$id)
+# min_tr <- min(df.data_bed$id)
 
 ## Bedgraph files
 list_files_bedGr <- list.files (path=path_files ,pattern = ".bedGraph$")
@@ -206,11 +211,18 @@ shinyServer(function(input, output) {
   # Intervals plot
   interv_p <- reactive({ 
     ggplot(data = data()) +
-      geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9, fill=group)) +
+#       geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9, fill=group)) +
+      geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = 1, fill=group)) +
+#       geom_text (aes(x=min(start), y=max(end), label=id), size=4) +
+#       geom_text (aes(x=-10, y=0.5, label=id), size=4) +
       scale_fill_manual(values=colours_v) +
-      scale_y_continuous(limits=c(min_tr, n_tracks + 1), breaks=unique(data()$new_id) + 0.5, labels=unique(data()$id)) +
-      scale_x_continuous(limits=range_x(), breaks =NULL) +
-      theme(legend.position="none", axis.line.x=element_blank())
+#       scale_y_continuous(limits=c(min_tr, n_tracks + 1), breaks=unique(data()$new_id) + 0.5, labels=unique(data()$id)) +
+      scale_y_continuous(limits=c(0,1), breaks=NULL, labels=unique(data()$id))  +
+#       scale_x_continuous(limits=range_x(), breaks =NULL) +
+      theme(axis.text.y = element_text(size=10), #strip.background = element_blank(),
+            legend.position="none", axis.line.x=element_blank(), strip.text.x = element_blank()) +
+#       facet_wrap(~ group_id, ncol= 1)
+      facet_grid(group_id ~ .)
   })
 
   #bedGraph plot
@@ -220,9 +232,10 @@ shinyServer(function(input, output) {
     scale_fill_manual(values=colours_v) +
     scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
     scale_x_continuous(limits=range_x(), breaks=NULL) +
-    facet_wrap(~group_id, ncol= 1) + 
-    theme(strip.background = element_blank(), strip.text.x = element_blank(), axis.text.y = element_text(size=10), 
-          legend.position="none", axis.line.x=element_blank()) 
+#     facet_wrap(~group_id, ncol= 1) + 
+    facet_grid(group_id ~ .) +
+    theme(axis.text.y = element_text(size=10), #strip.background = element_blank(), 
+          legend.position="none", axis.line.x=element_blank(), strip.text.x = element_blank()) 
   })
   
   # Environmental info plot

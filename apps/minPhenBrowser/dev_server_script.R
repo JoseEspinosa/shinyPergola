@@ -52,14 +52,23 @@ tail(df.data_bed)
 df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
                             labels=c("control", "case"))
 
+df.data_bed$n_group <- c(1:length (df.data_bed$group))
+df.data_bed$n_group [df.data_bed$group == controlGroupLabel] <- 1
+df.data_bed$n_group [df.data_bed$group == caseGroupLabel] <- 2
+
+df.data_bed$group_id <- paste (df.data_bed$n_group, df.data_bed$id, sep="_")
+
 # Probably I have to do something with height of tracks, and always shown as many tracks as available in the data,
 # even if the are empty, unique (id) --> ylim
-df.data_bed$group_id <- paste(df.data_bed$id, df.data_bed$group, sep="_")
-df.data_bed <- df.data_bed [with(df.data_bed, order(group, id)), ]
+
+## It is better to make it numerically, I can control better the order. That it is way it is commented
+# df.data_bed$group_id <- paste(df.data_bed$id, df.data_bed$group, sep="_")
+# df.data_bed <- df.data_bed [with(df.data_bed, order(group, id)), ]
+
 # df.data_bed_filt  <- transform (df.data_bed_filt [which (df.data_bed_filt$group == controlGroupLabel), ], new_id=match(group_id, unique(group_id)))
 # transform (df.data_bed_filt [which (df.data_bed_filt$group == caseGroupLabel), ], new_id=match(group_id, unique(group_id)))
 
-df.data_bed <- transform (df.data_bed, new_id=match(group_id, unique(group_id)))
+# df.data_bed <- transform (df.data_bed, new_id=match(group_id, unique(group_id)))
 
 length (df.data_bed[,1])
 
@@ -97,11 +106,12 @@ df_t$std.errorRate <- df_t$rate [,2]
 
 df.mean_bad <- df_t
 
-p = ggplot(data = df.mean_bad, aes(x=group, y=meanValue, fill=group)) +
-    geom_bar(stat="identity", position=position_dodge()) +
-    geom_errorbar(aes(ymin=meanValue-std.errorValue, ymax=meanValue+std.errorValue), width=.2, position=position_dodge(.9))
+# Old plot when I considered the number of the track as the value for the y axis
+# p = ggplot(data = df.mean_bad, aes(x=group, y=meanValue, fill=group)) +
+#     geom_bar(stat="identity", position=position_dodge()) +
+#     geom_errorbar(aes(ymin=meanValue-std.errorValue, ymax=meanValue+std.errorValue), width=.2, position=position_dodge(.9))
 
-p  
+# p  
 
 # Example extracted from another script
 # ggplot(data=tbl_stat_mean, aes(x=index, y=mean, fill=group2)) + 
@@ -134,8 +144,25 @@ p_bed<- ggplot(df.data_bed_filt) +
   theme_bw()
 
 ggplot(df.data_bed_filt) + 
-  geom_linerange(aes(x =  new_id, ymin = start, ymax = end), size =30) + coord_flip()
+  geom_linerange(aes(x =  new_id, ymin = start, ymax = end), size =30) + coord_flip() + scale_y_reverse()
 
+head (df.data_bed_filt)
+
+df.bed.min <- df.data_bed_filt[ df.data_bed_filt$start == ave(df.data_bed_filt$start, df.data_bed_filt$group_id, FUN=min), ]
+# df.bed.min$start <-  df.bed.min$start
+################################################
+# New plot with group and track as 1_1, 1_2, ...
+p <- ggplot (data = df.data_bed_filt) + 
+  #      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
+  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = 1, fill=group)) +
+#   geom_text (data=df.bed.min, aes(x = start, y = 0.5, label=id)) +
+  scale_y_continuous(limits=c(0,1), breaks=c(0,1), labels=c(0,1))  +
+#   theme(strip.background = element_blank(), axis.title.y=element_blank(), axis.title.x=element_blank()) +
+#   facet_wrap(~ group_id, ncol= 1)
+  facet_grid(group_id ~ .) 
+#   facet_wrap (~ group_id, nrow= 1) + 
+
+p
 
 ##########################
 ### Reading BEDGRAPH files
