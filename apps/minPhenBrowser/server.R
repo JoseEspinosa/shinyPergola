@@ -1,3 +1,12 @@
+#############################################################################
+### Jose A Espinosa. NPMMD/CB-CRG Group. Dec 2015                         ###
+#############################################################################
+### Shiny app to show pergola data                                        ###
+### server.R                                                              ### 
+#############################################################################
+
+# runApp ("/Users/jespinosa/git/shinyPergola/apps/minPhenBrowser")
+
 library(shiny)
 # library(datasets)
 library (plotrix) #std.err # mirar si la utilizo
@@ -6,7 +15,6 @@ library(grid)
 
 source ("/Users/jespinosa/git/phecomp/lib/R/plotParamPublication.R")
 
-# runApp ("/Users/jespinosa/git/shinyPergola/apps/minPhenBrowser")
 path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
 
 colours_v <- c("darkgreen", "red", "magenta", "black") 
