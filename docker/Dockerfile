@@ -11,11 +11,23 @@ FROM ubuntu
 MAINTAINER Jose Espinosa-Carrasco <espinosacarrascoj@gmail.com>
 
 #
+# Install Python and Basic Python Tools
+#
+
+RUN apt-get install -y python python-dev python-distribute python-pip
+
+#
 # Install Pergola
-# 
+#
+ 
 RUN wget -q https://github.com/cbcrg/pergola/archive/master.zip && \
     unzip master.zip && \
     cd pergola-master && \
     python setup.py install 
+#
+# Get pip to download and install requirements:
+#
 
+# TODO add requirements.txt file to pergola
+RUN pip install -r /pegola-master/requirements.txt
 	
