@@ -14,16 +14,17 @@ library (plotrix) #std.err # mirar si la utilizo
 
 source ("/Users/jespinosa/git/phecomp/lib/R/plotParamPublication.R")
 
-path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
+# path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
+path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test_all"
 
 colours_v <- c("darkgreen", "red", "magenta", "black") 
 
 setwd(path_files)
-list_files <-list.files(path=path_files ,pattern = ".bed$")
+list_files <-list.files(path=path_files ,pattern = "^tr.*.bed$")
 
 caseGroupLabel <- "case"
 controlGroupLabel <- "control"
-nAnimals <- 4
+nAnimals <- 18
 
 #Label by experimental group (control, free choice, force diet...)
 id <- c (1 : nAnimals)
@@ -39,7 +40,7 @@ data_bed = do.call (rbind, lapply (list_files, y <- function (x) { data <- read.
 tail(data_bed)
 
 df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
-# head (df.data_bed [which (df.data_bed$id==2),] )
+# head (df.data_bed [which (df.data_bed$id==18),] )
  
 colnames (df.data_bed) <- c("id", "chr", "start", "end", "V4", "value", "strand", "V7", "V8", "V9", "group")
 df.data_bed$id <- as.numeric (df.data_bed$id)
@@ -51,20 +52,36 @@ tail(df.data_bed)
 
 df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
                             labels=c("control", "case"))
-
+tail (df.data_bed)
 df.data_bed$n_group <- c(1:length (df.data_bed$group))
 df.data_bed$n_group [df.data_bed$group == controlGroupLabel] <- 1
 df.data_bed$n_group [df.data_bed$group == caseGroupLabel] <- 2
 
 df.data_bed$group_id <- paste (df.data_bed$n_group, df.data_bed$id, sep="_")
-
+class(df.data_bed$group_id)
+df.data_bed$group_id <- as.factor(df.data_bed$group_id)
+levels(df.data_bed$group_id)
 # Probably I have to do something with height of tracks, and always shown as many tracks as available in the data,
 # even if the are empty, unique (id) --> ylim
 
 ## It is better to make it numerically, I can control better the order. That it is way it is commented
 # df.data_bed$group_id <- paste(df.data_bed$id, df.data_bed$group, sep="_")
 # df.data_bed <- df.data_bed [with(df.data_bed, order(group, id)), ]
+# df.data_bed$group_id <- factor(df.data_bed$group_id, levels=df.data_bed$group_id[order(df.data_bed$n_group, df.data_bed$id)], ordered=TRUE)
+# df.data_bed$group_id <- factor(df.data_bed$group_id, levels=make.unique(df.data_bed$group_id[order(df.data_bed$n_group, df.data_bed$id)]), ordered=TRUE)
+df.data_bed$group_id <- factor(df.data_bed$group_id, levels=unique(as.character(df.data_bed$group_id[order(df.data_bed$n_group, df.data_bed$id)])))
 
+dd <- factor(df.data_bed$group_id, levels=df.data_bed$group_id[order(df.data_bed$n_group, df.data_bed$id)], ordered=TRUE)
+# df.data_bed$new_group_id <- factor(df.data_bed$group_id, levels=df.data_bed$group_id[order(df.data_bed$n_group, df.data_bed$id)], ordered=TRUE)
+df.data_bed$group_id
+set.seed(0)
+a = sample(1:20,replace=F)
+b = sample(1:20,replace=F)
+f = as.factor(letters[1:20])
+
+fn = factor(f, levels=f[order(a,b,f)], ordered=TRUE)
+## Commented
+# df.data_bed$group_id = factor(df.data_bed$group_id, levels=df.data_bed$group_id[order(df.data_bed$order_v,df.data_bed$group_id[)], ordered=TRUE)
 # df.data_bed_filt  <- transform (df.data_bed_filt [which (df.data_bed_filt$group == controlGroupLabel), ], new_id=match(group_id, unique(group_id)))
 # transform (df.data_bed_filt [which (df.data_bed_filt$group == caseGroupLabel), ], new_id=match(group_id, unique(group_id)))
 
@@ -150,6 +167,13 @@ head (df.data_bed_filt)
 
 df.bed.min <- df.data_bed_filt[ df.data_bed_filt$start == ave(df.data_bed_filt$start, df.data_bed_filt$group_id, FUN=min), ]
 # df.bed.min$start <-  df.bed.min$start
+
+# Ordering by mice number
+# df.data_bed_filt$id <- as.numeric(df.data_bed_filt$id)
+# df.data_bed_filt <- with(df.data_bed_filt, df.data_bed_filt[order( n_group, id),])
+class(df.data_bed_filt$id)
+class(df.data_bed_filt$n_group)
+
 ################################################
 # New plot with group and track as 1_1, 1_2, ...
 p <- ggplot (data = df.data_bed_filt) + 
@@ -161,7 +185,8 @@ p <- ggplot (data = df.data_bed_filt) +
 #   facet_wrap(~ group_id, ncol= 1)
   facet_grid(group_id ~ .) 
 #   facet_wrap (~ group_id, nrow= 1) + 
-
+head(df.data_bed_filt)
+tail(df.data_bed_filt)
 p
 
 ##########################

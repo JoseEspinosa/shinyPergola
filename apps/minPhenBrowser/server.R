@@ -1,30 +1,37 @@
-#############################################################################
-### Jose A Espinosa. NPMMD/CB-CRG Group. Dec 2015                         ###
-#############################################################################
-### Shiny app to show pergola data                                        ###
-### server.R                                                              ### 
-#############################################################################
+############################################################################################
+### Jose A Espinosa. NPMMD/CB-CRG Group. Dec 2015                                        ###
+############################################################################################
+### Shiny app to show pergola data                                                       ###
+### server.R                                                                             ### 
+############################################################################################
+### TODO                                                                                 ###
+### Change color scheme with a color blind friendly scheme, some ideas here:             ###
+### http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/#a-colorblind-friendly-palette ###
+############################################################################################
 
 # runApp ("/Users/jespinosa/git/shinyPergola/apps/minPhenBrowser")
 
 library(shiny)
 # library(datasets)
+# library(grid)
+library (gridExtra)
 library (plotrix) #std.err # mirar si la utilizo
 library (ggplot2)
-library(grid)
 
 source ("/Users/jespinosa/git/phecomp/lib/R/plotParamPublication.R")
 
-path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
+# path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
+path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test_all"
 
 colours_v <- c("darkgreen", "red", "magenta", "black") 
 
 setwd(path_files)
-list_files <-list.files(path=path_files ,pattern = ".bed$")
+# list_files <-list.files(path=path_files ,pattern = ".bed$")
+list_files <-list.files(path=path_files ,pattern = "^tr.*.bed$")
 
 caseGroupLabel <- "case"
 controlGroupLabel <- "control"
-nAnimals <- 4
+nAnimals <- 18
 
 #Label by experimental group (control, free choice, force diet...)
 id <- c (1 : nAnimals)
@@ -62,13 +69,19 @@ df.data_bed$n_group [df.data_bed$group == controlGroupLabel] <- 1
 df.data_bed$n_group [df.data_bed$group == caseGroupLabel] <- 2
 df.data_bed$group_id <- paste (df.data_bed$n_group, df.data_bed$id, sep="_")
 
+# df.data_bed$group_id <- factor(df.data_bed$group_id, levels=df.data_bed$group_id 
+#                                [order(as.numeric(df.data_bed$n_group), as.numeric(df.data_bed$id))], ordered=TRUE)
+df.data_bed$group_id <- factor(df.data_bed$group_id, 
+                               levels=unique(as.character(df.data_bed$group_id[order(df.data_bed$n_group, df.data_bed$id)])))
+
+
 # df.data_bed$id <- as.numeric (df.data_bed$id)
 # min_tr <- min(df.data_bed$id)
 
 ## Bedgraph files
-list_files_bedGr <- list.files (path=path_files ,pattern = ".bedGraph$")
-
-nAnimals <- 4
+list_files <-list.files(path=path_files ,pattern = "^tr.*.bed$")
+list_files_bedGr <- list.files (path=path_files ,pattern = "^tr.*.bedGraph$")
+nAnimals <- 18
 
 #Label by experimental group (control, free choice, force diet...)
 id <- c (1 : nAnimals)
@@ -93,7 +106,6 @@ data_bedGr$n_group <- c(1:length (data_bedGr$group))
 data_bedGr$n_group [data_bedGr$group == controlGroupLabel] <- 1
 data_bedGr$n_group [data_bedGr$group == caseGroupLabel] <- 2
 data_bedGr$group_id <- paste (data_bedGr$n_group, data_bedGr$id, sep="_")
-
 
 data_bedGr$id <- as.numeric (data_bedGr$id)
 min_v <- floor (min (data_bedGr$value))
@@ -228,8 +240,9 @@ shinyServer(function(input, output) {
       scale_y_continuous(limits=c(0,1), breaks=NULL, labels=unique(data()$id))  +
       scale_x_continuous(limits=range_x(), breaks =NULL) +
       theme(axis.text.y = element_text(size=10), axis.line.x=element_blank(), #strip.background = element_blank(),
-            legend.position="none", strip.text.x = element_blank()) +
+            legend.position="none", strip.text.x = element_blank(), strip.text.y = element_text(size=8)) +
 #       facet_wrap(~ group_id, ncol= 1)
+#       facet_grid(group_id ~ .)
       facet_grid(group_id ~ .)
   })
 
@@ -244,7 +257,7 @@ shinyServer(function(input, output) {
 #     facet_wrap(~group_id, ncol= 1) + 
     facet_grid(group_id ~ .) +
     theme(axis.text.y = element_text(size=10), #strip.background = element_blank(), axis.line.x=element_blank(),
-          legend.position="none", strip.text.x = element_blank()) 
+          legend.position="none", strip.text.x = element_blank(), strip.text.y = element_text(size=8)) 
   })
   
   # Environmental info plot
@@ -262,7 +275,7 @@ shinyServer(function(input, output) {
   #       scale_fill_manual(values=colours_v) +
   #         scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
   #       facet_wrap(~group_id, ncol= 1) + 
-      theme(strip.text.x = element_blank(), axis.line.x=element_blank(), axis.text.y = element_text(size=10), #strip.background = element_blank(),
+      theme(strip.text.x = element_blank(), axis.line.x=element_blank(), strip.text.y = element_text(size=6), #strip.background = element_blank(),
             legend.position="none", axis.text.y=element_blank())
 #               axis.text.y = element_text(size=10), axis.line.y=element_blank(),axis.text.y=element_blank()) 
     }
@@ -295,7 +308,7 @@ shinyServer(function(input, output) {
       p2$widths[2:3] <- maxWidth
       p3$widths[2:3] <- maxWidth
         
-      grid.arrange(p3, p1, p2, heights = c(0.8, 2, 2))
+      grid.arrange(p3, p1, p2, heights = c(0.25, 2, 2))
     }
   })
   

@@ -50,7 +50,7 @@ shinyUI(pageWithSidebar(
   
   mainPanel(
 #     textOutput("text1"),
-    plotOutput("intervals", height=400),
+    plotOutput("intervals", height=800),
     plotOutput("envInfo", height=20),
     plotOutput("barPlotValue", height=400),
     plotOutput("barPlotDuration", height=400),
