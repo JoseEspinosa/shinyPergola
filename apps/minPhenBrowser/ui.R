@@ -45,6 +45,12 @@ shinyUI(pageWithSidebar(
     tags$hr(),
     checkboxInput('header', 'Header', FALSE),
     radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
+    radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
+    
+    fileInput('filePhases', 'Phases CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
+    tags$hr(),
+    checkboxInput('header', 'Header', FALSE),
+    radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
     radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"') 
   ),
   

@@ -149,7 +149,23 @@ shinyServer(function(input, output) {
     df$id <- as.factor (c(1: length(df [,1])))
     df
   })
-  
+
+  dfFilePhases <- reactive ({
+    # input$fileEnv will be NULL initially. After the user selects
+    # and uploads a file, it will be a data frame with 'name',
+    # 'size', 'type', and 'datapath' columns. The 'datapath'
+    # column will contain the local filenames where the data can
+    # be found.
+    
+    inFilePh <- input$filePhases
+    
+    if (is.null(inFilePh)) return(NULL)
+    
+    df_ph <- read.table(inFilePh$datapath, header=input$header, sep=input$sep, quote=input$quote)
+    df_ph$id <- as.factor (c(1: length(df_ph [,1])))
+    df_ph
+  })
+
   output$text1 <- renderText({ 
 #    as.character (pos())
      paste (as.character (input$windowsize), as.character (pos()))
@@ -218,6 +234,45 @@ shinyServer(function(input, output) {
     ranges_p 
   })
   
+  dfFilePhases_range <- reactive({    
+    if (is.null(dfFilePhases())) return(NULL)
+    
+    #     range_win <- c (max( pos() - input$windowsize, 0 ), min( pos() + input$windowsize, max(as.numeric(dfFileEnv()$V3))))
+    range_win <- range_x()                                                    
+    range_r <- dfFilePhases()[1,] 
+    
+    range_r$V2 <- range_win[1] 
+    range_r$V3 <- range_win[2]
+    
+    ranges <- merge(dfFilePhases(), range_r, by="V1",suffixes=c("A","B"))
+    ranges_i <- ranges [with(ranges, V2A >= V2B & V3A <= V3B),][,c(0:10)] 
+    
+    # left thresholding
+    ranges_l <- ranges [with(ranges, V2A < V2B & V3A > V2B),][,c(0:10)]
+    
+    # right thresholding
+    # range_win <- c(568984.00, 570925.00)
+    ranges_r <- ranges [with(ranges, V2A < V3B & V3A > V3B),][,c(0:10)]
+    
+    if (all.equal (ranges_l,ranges_r) == TRUE ) {
+      ranges_r <- data.frame()
+      ranges_l$V2A <- range_win[1]+0.001
+      ranges_l$V3A <- range_win[2]-0.001
+    }
+    
+    if (nrow (ranges_l) != 0) {
+      ranges_l$V2A <- range_win[1]+0.001
+    }
+    
+    if (nrow (ranges_r) != 0) {
+      ranges_r$V3A <- range_win[2]-0.001
+    }
+    
+    ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
+    levels(ranges_p$V1) <- c("Env1")
+    ranges_p 
+  })
+
   output$bed <- renderTable({
     as.data.frame(dfFileEnv_range())
   })
@@ -281,8 +336,26 @@ shinyServer(function(input, output) {
     }
   }) 
   
+  # Environmental phases plot
+  phases_p <- reactive ({ 
+    #   env_p <- reactive({ 
+    if (is.null (dfFilePhases_range())) {
+      return (NULL)
+    }
+    else {
+      ggplot (data = dfFilePhases_range()) + 
+        geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=V4A)) +
+        scale_fill_manual (values = c("lightblue", "darkblue")) +
+        scale_y_continuous(breaks=NULL) +
+        scale_x_continuous(limits=range_x(), breaks=NULL) +
+        facet_grid(V1 ~ .) +
+        theme(strip.text.x = element_blank(), axis.line.x=element_blank(), strip.text.y = element_text(size=6), #strip.background = element_blank(),
+              legend.position="none", axis.text.y=element_blank())
+    }
+  })
+
   output$intervals <- renderPlot({ 
-    if (is.null (env_p())) {
+    if (is.null (env_p()) & is.null(phases_p())) {
         p1 <- ggplot_gtable(ggplot_build(interv_p()))
         p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
   #     p3 <- ggplot_gtable(ggplot_build(env_p()))
@@ -297,7 +370,20 @@ shinyServer(function(input, output) {
   #     grid.arrange(p1, p2, p3, heights = c(2, 2))
       grid.arrange(p1, p2, heights = c(2, 2)) 
     }
-    else {
+    else if (is.null (env_p())) {
+      p1 <- ggplot_gtable(ggplot_build(interv_p()))
+      p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
+      p3 <- ggplot_gtable(ggplot_build(phases_p()))
+      
+      maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
+      
+      p1$widths[2:3] <- maxWidth
+      p2$widths[2:3] <- maxWidth
+      p3$widths[2:3] <- maxWidth
+      
+      grid.arrange(p3, p1, p2, heights = c(0.25, 2, 2))
+    }
+    else if (is.null (phases_p())) {
       p1 <- ggplot_gtable(ggplot_build(interv_p()))
       p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
       p3 <- ggplot_gtable(ggplot_build(env_p()))
@@ -307,8 +393,23 @@ shinyServer(function(input, output) {
       p1$widths[2:3] <- maxWidth
       p2$widths[2:3] <- maxWidth
       p3$widths[2:3] <- maxWidth
-        
+      
       grid.arrange(p3, p1, p2, heights = c(0.25, 2, 2))
+    }
+    else {
+      p1 <- ggplot_gtable(ggplot_build(interv_p()))
+      p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
+      p3 <- ggplot_gtable(ggplot_build(env_p()))
+      p4 <- ggplot_gtable(ggplot_build(phases_p()))
+      
+      maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3], p4$widths[2:3])
+      
+      p1$widths[2:3] <- maxWidth
+      p2$widths[2:3] <- maxWidth
+      p3$widths[2:3] <- maxWidth
+      p4$widths[2:3] <- maxWidth
+        
+      grid.arrange(p3, p4, p1, p2, heights = c(0.25, 0.25, 2, 2))
     }
   })
   

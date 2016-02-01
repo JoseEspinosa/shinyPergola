@@ -295,7 +295,9 @@ grid.arrange(p1, p2, heights = c(2, 2))
 
 ############
 ## Ploting environmental info
-inFile_datapath <- "/Users/jespinosa/git/shinyPergola/data/bed4test/tr_1_3_2_5_4_7_6_9_8all_data_types.bed"
+# inFile_datapath <- "/Users/jespinosa/git/shinyPergola/data/bed4test/tr_1_3_2_5_4_7_6_9_8all_data_types.bed"
+inFile_datapath <- "/Users/jespinosa/git/shinyPergola/data/bed4test_all/files_1_3_2_5_4_7_6_9_8all_data_types.bed"
+inFile_datapath <- "/Users/jespinosa/git/shinyPergola/data/bed4test_all/phases.bed"
 input_header <- FALSE
 df_env <- read.table(inFile_datapath, header=input_header, sep="\t")
 df_env$id <- as.factor (c(1: length(df_env [,1])))
@@ -351,10 +353,14 @@ ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
 
 # ranges_p$id <- as.factor (c(1:length(ranges_p[,1])))
 levels(ranges_p$V1) <- c("Env1")
+length(unique(ranges_p$V4A))
 p = ggplot (data = ranges_p) + 
-  geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=idA)) +
+#   geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=idA)) +
+  geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=V4A)) +
+  scale_fill_manual (values = c("darkblue","lightblue")) +
   scale_x_continuous(limits=range_win) +
-  facet_grid(V1 ~ .)
+  facet_grid(V1 ~ .) 
+  
   #       scale_fill_manual(values=colours_v) +
   #         scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
   #       facet_wrap(~group_id, ncol= 1) + 
