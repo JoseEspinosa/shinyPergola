@@ -23,7 +23,7 @@ source ("/Users/jespinosa/git/phecomp/lib/R/plotParamPublication.R")
 # path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
 path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test_all"
 
-colours_v <- c("darkgreen", "red", "magenta", "black") 
+colours_v <- c("red", "darkblue", "magenta", "black") 
 
 setwd(path_files)
 # list_files <-list.files(path=path_files ,pattern = ".bed$")
@@ -270,7 +270,12 @@ shinyServer(function(input, output) {
     
     ranges_p <- rbind (ranges_l, ranges_i, ranges_r)
     levels(ranges_p$V1) <- c("Env1")
-    ranges_p 
+    
+    cb_palette <- c("lightblue", "darkblue","#999999", "#E69F00", "#56B4E9",
+                   "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+    
+    colors_p <- cb_palette [1:length(unique(ranges_p$V4A))]
+    list(ranges_p=ranges_p, colors_p=colors_p) 
   })
 
   output$bed <- renderTable({
@@ -339,13 +344,14 @@ shinyServer(function(input, output) {
   # Environmental phases plot
   phases_p <- reactive ({ 
     #   env_p <- reactive({ 
-    if (is.null (dfFilePhases_range())) {
+    if (is.null (dfFilePhases_range()$ranges_p)) {
       return (NULL)
     }
     else {
-      ggplot (data = dfFilePhases_range()) + 
+      ggplot (data = dfFilePhases_range()$ranges_p) + 
         geom_rect (aes(xmin = V2A, xmax = V3A, ymin = 0, ymax = 1, fill=V4A)) +
-        scale_fill_manual (values = c("lightblue", "darkblue")) +
+#         scale_fill_manual (values = c("lightblue", "darkblue")) +
+        scale_fill_manual (values = dfFilePhases_range()$colors_p) +
         scale_y_continuous(breaks=NULL) +
         scale_x_continuous(limits=range_x(), breaks=NULL) +
         facet_grid(V1 ~ .) +
