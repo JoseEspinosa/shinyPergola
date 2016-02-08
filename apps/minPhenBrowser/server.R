@@ -285,9 +285,11 @@ shinyServer(function(input, output) {
 #   output$bedgraph <- renderTable({
 #     dataBedgraph()
 #   })
-#   output$fileEnv <- renderTable({
-#     dfFileEnv_range()
-#   })
+  output$fileEnv <- renderTable({
+#     as.data.frame(dfFileEnv_range())
+#     as.data.frame(dfFilePhases_range())
+    as.data.frame(dfFilePhases_range()$ranges_p)    
+  })
 
   # Intervals plot
   interv_p <- reactive({ 

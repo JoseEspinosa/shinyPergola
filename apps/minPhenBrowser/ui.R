@@ -29,7 +29,9 @@ library(shiny)
 
 shinyUI(pageWithSidebar(
 #   headerPanel("Behavioral browser"),
-  headerPanel("Behavioral browser",
+  headerPanel(HTML('Behavioral browser
+              <a href="http://cbcrg.github.io/pergola/" target="_blank"><img align="right" alt="Pergola logo" 
+                   src="https://cloud.githubusercontent.com/assets/6224346/12887167/dcf80b24-ce72-11e5-8389-90122fd6c84e.png" /></a>'),
               tags$head(tags$style(type="text/css", "label.radio { display: inline-block; }", ".radio input[type=\"radio\"] { float: none; }"),
                         tags$style(type="text/css", "select { max-width: 200px; }"),
                         tags$style(type="text/css", "textarea { max-width: 185px; }"),
@@ -42,15 +44,16 @@ shinyUI(pageWithSidebar(
     conditionalPanel(condition="input.tabs_p=='About'",
                      h4("Introduction")
     ),
-    conditionalPanel(condition="input.tabs_p=='Browser'",
-                     h4("Introductiowwwn"),
+    conditionalPanel(condition="input.tabs_p=='Upload data'",
+                     h4("Additional information upload"),
                      fileInput('filePhases', 'Phases CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
                      tags$hr(),
                      checkboxInput('header', 'Header', FALSE),
                      radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
                      radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"') 
     ),
-    conditionalPanel(condition="input.tabs_p=='Data upload'",
+    # Load info such as experimental info
+    conditionalPanel(condition="input.tabs_p=='Browser'",
                     sliderInput("windowsize", 
                                 "Windowsize:", 
                                 min = 1000,
@@ -61,7 +64,7 @@ shinyUI(pageWithSidebar(
                     uiOutput("idSelect"),
                     uiOutput("genomicPositionSelect"),
     
-      fileInput('fileEnv', 'Choose CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
+      fileInput('fileEnv', 'Choose Additional File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
       tags$hr(),
       checkboxInput('header', 'Header', FALSE),
       radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
@@ -79,17 +82,21 @@ shinyUI(pageWithSidebar(
 #     textOutput("text1"),
     tabsetPanel(
       tabPanel("Browser",
-               HTML('<p>Browser</p>')),
+               plotOutput("intervals", height=800),
+               plotOutput("envInfo", height=20),
+               plotOutput("barPlotValue", height=400),
+               plotOutput("barPlotDuration", height=400),
+               plotOutput("barPlotN", height=400),
+               plotOutput("barPlotRate", height=400)),#,
+#                tableOutput('bed')),                 
+      tabPanel("Upload data",
+               HTML('<p>Additional data</p>'),  
+               tableOutput('bed'),     
+               HTML('<p>Phases data</p>'),  
+               tableOutput('fileEnv'),
+               HTML('<p>End data</p>')),    
       tabPanel("About",
-              HTML('<p>Pergola</p>')),
-      tabPanel("Data upload",               
-              plotOutput("intervals", height=800),
-              plotOutput("envInfo", height=20),
-              plotOutput("barPlotValue", height=400),
-              plotOutput("barPlotDuration", height=400),
-              plotOutput("barPlotN", height=400),
-              plotOutput("barPlotRate", height=400),
-              tableOutput('bed')),
+               HTML('<p>Pergola</p>')),
       id="tabs_p"
 #               tableOutput('bedgraph'),
 #               tableOutput('fileEnv')
