@@ -23,8 +23,9 @@ source ("/Users/jespinosa/git/phecomp/lib/R/plotParamPublication.R")
 # path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
 path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test_all"
 
-colours_v <- c("red", "darkblue", "magenta", "black") 
-
+# colours_v <- c("red", "darkblue", "magenta", "black") 
+# colours_v <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+colours_v <- c("#E69F00", "#0072B2", "#D55E00", "#CC79A7", "#999999", "#56B4E9", "#009E73", "#F0E442")
 setwd(path_files)
 # list_files <-list.files(path=path_files ,pattern = ".bed$")
 list_files <-list.files(path=path_files ,pattern = "^tr.*.bed$")

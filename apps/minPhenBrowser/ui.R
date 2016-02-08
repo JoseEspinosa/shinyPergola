@@ -29,8 +29,6 @@ library(shiny)
 
 shinyUI(pageWithSidebar(
 #   headerPanel("Behavioral browser"),
-  
-  
   headerPanel("Behavioral browser",
               tags$head(tags$style(type="text/css", "label.radio { display: inline-block; }", ".radio input[type=\"radio\"] { float: none; }"),
                         tags$style(type="text/css", "select { max-width: 200px; }"),
@@ -40,10 +38,17 @@ shinyUI(pageWithSidebar(
                         tags$style(type='text/css', ".span4 { max-width: 330px; }")) 
   ),
 
-  
   sidebarPanel(
     conditionalPanel(condition="input.tabs_p=='About'",
                      h4("Introduction")
+    ),
+    conditionalPanel(condition="input.tabs_p=='Browser'",
+                     h4("Introductiowwwn"),
+                     fileInput('filePhases', 'Phases CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
+                     tags$hr(),
+                     checkboxInput('header', 'Header', FALSE),
+                     radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
+                     radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"') 
     ),
     conditionalPanel(condition="input.tabs_p=='Data upload'",
                     sliderInput("windowsize", 
@@ -60,19 +65,21 @@ shinyUI(pageWithSidebar(
       tags$hr(),
       checkboxInput('header', 'Header', FALSE),
       radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
-      radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
-    
-      fileInput('filePhases', 'Phases CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
-      tags$hr(),
-      checkboxInput('header', 'Header', FALSE),
-      radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
-      radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"') 
+#       radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
+      radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"')
+#       fileInput('filePhases', 'Phases CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
+#       tags$hr(),
+#       checkboxInput('header', 'Header', FALSE),
+#       radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
+#       radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"') 
       )
     ),
   
   mainPanel(
 #     textOutput("text1"),
     tabsetPanel(
+      tabPanel("Browser",
+               HTML('<p>Browser</p>')),
       tabPanel("About",
               HTML('<p>Pergola</p>')),
       tabPanel("Data upload",               
