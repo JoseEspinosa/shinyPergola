@@ -27,7 +27,9 @@ library(shiny)
 #   
 # ))
 
-shinyUI(pageWithSidebar(
+shinyUI(
+  fluidPage(
+#   pageWithSidebar(
 #   headerPanel("Behavioral browser"),
   headerPanel(HTML('Behavioral browser
               <a href="http://cbcrg.github.io/pergola/" target="_blank"><img align="right" alt="Pergola logo" 
@@ -36,18 +38,27 @@ shinyUI(pageWithSidebar(
                         tags$style(type="text/css", "select { max-width: 200px; }"),
                         tags$style(type="text/css", "textarea { max-width: 185px; }"),
                         tags$style(type="text/css", ".jslider { max-width: 200px; }"),
-                        tags$style(type='text/css', ".well { max-width: 330px; }"),
+                        tags$style(type='text/css', ".well { max-width: 330px; }"), # left menu
                         tags$style(type='text/css', ".span4 { max-width: 330px; }")) 
   ),
 
   sidebarPanel(
-    conditionalPanel(condition="input.tabs_p=='About'",
-                     h4("Introduction") 
+    # Load info such as experimental info
+    conditionalPanel(condition="input.tabs_p=='Browser'",
+                     sliderInput("windowsize", 
+                                 "Windowsize:", 
+                                 min = 1000,
+                                 max = 1000000,
+                                 value =1000,
+                                 step = 300),
+                     uiOutput("bedGraphRange"),
+                     uiOutput("idSelect"),
+                     uiOutput("genomicPositionSelect")
     ),
     conditionalPanel(condition="input.tabs_p=='Upload data'",
                     h3("Additional information upload"),
                     
-                    h4("File 2"),
+                    h4("File 1"),
                     fileInput('fileEnv', 'Choose Additional File', multiple=TRUE, 
                               accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
                     tags$hr(),
@@ -61,7 +72,7 @@ shinyUI(pageWithSidebar(
                     #       radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
                     #       radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"')  
                     
-                    h4("File 1"),
+                    h4("File 2"),
                     fileInput('filePhases', 'Phases CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
                     tags$hr(),
                     checkboxInput('header', 'Header', FALSE),
@@ -70,31 +81,39 @@ shinyUI(pageWithSidebar(
                      
                                      
                   ),
-    # Load info such as experimental info
-    conditionalPanel(condition="input.tabs_p=='Browser'",
-                    sliderInput("windowsize", 
-                               "Windowsize:", 
-                               min = 1000,
-                               max = 1000000,
-                               value =1000,
-                               step = 300),
-                               uiOutput("bedGraphRange"),
-                               uiOutput("idSelect"),
-                               uiOutput("genomicPositionSelect")
-                    )
+    conditionalPanel(condition="input.tabs_p=='About'",
+                     h4("Introduction") 
+    ),
+    conditionalPanel(condition="input.tabs_p=='Plots'",
+                     h4("Plots") 
+    )
   ),
   
   mainPanel(
 #     textOutput("text1"),
     tabsetPanel(
       tabPanel("Browser",
+        fluidRow(column(12,
                plotOutput("intervals", height=800),
-               plotOutput("envInfo", height=20),
-               plotOutput("barPlotValue", height=400),
-               plotOutput("barPlotDuration", height=400),
-               plotOutput("barPlotN", height=400),
-               plotOutput("barPlotRate", height=400)),#,
-#                tableOutput('bed')),                 
+               plotOutput("envInfo", height=20))                
+      )),
+    
+      tabPanel("Plots",
+               fluidRow(column(12,
+#               fluidRow(column(6,
+#                               plotOutput("barPlotValue", height=400)
+#                               ),
+#                        column(6,
+#                               plotOutput("barPlotDuration", height=400)
+#                        )
+#                        ),
+#               fluidRow(column(3,   
+                               plotOutput("barPlotValue", height=400),
+                               plotOutput("barPlotDuration", height=400),
+                               plotOutput("barPlotN", height=400),
+                               plotOutput("barPlotRate", height=400))                                      
+               )),
+
       tabPanel("Upload data",
                HTML('<p>Additional data</p>'),  
                tableOutput('bed'),     
@@ -103,6 +122,7 @@ shinyUI(pageWithSidebar(
                HTML('<p>End data</p>')),    
       tabPanel("About",
                HTML('<p>Pergola</p>')),
+      
       id="tabs_p"
 #               tableOutput('bedgraph'),
 #               tableOutput('fileEnv')
