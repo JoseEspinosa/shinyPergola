@@ -45,12 +45,13 @@ shinyUI(
   sidebarPanel(
     # Load info such as experimental info
     conditionalPanel(condition="input.tabs_p=='Browser'",
-                     sliderInput("windowsize", 
-                                 "Windowsize:", 
-                                 min = 1000,
-                                 max = 1000000,
-                                 value =1000,
-                                 step = 300),
+                     uiOutput("windowsize"),
+#                      sliderInput("windowsize", 
+#                                  "Windowsize:", 
+#                                  min = 1000,
+#                                  max = 1000000,
+#                                  value =1000,
+#                                  step = 300),
                      uiOutput("bedGraphRange"),
                      uiOutput("idSelect"),
                      uiOutput("genomicPositionSelect")
@@ -99,20 +100,43 @@ shinyUI(
       )),
     
       tabPanel("Plots",
-               fluidRow(column(12,
-#               fluidRow(column(6,
-#                               plotOutput("barPlotValue", height=400)
-#                               ),
-#                        column(6,
-#                               plotOutput("barPlotDuration", height=400)
-#                        )
-#                        ),
-#               fluidRow(column(3,   
-                               plotOutput("barPlotValue", height=400),
-                               plotOutput("barPlotDuration", height=400),
-                               plotOutput("barPlotN", height=400),
-                               plotOutput("barPlotRate", height=400))                                      
-               )),
+               
+              fluidRow(
+                column(3, downloadButton("barPlotValueTiff", "Download tiff")),
+                column(9, plotOutput("barPlotValue"))
+              ),
+              fluidRow(
+                column(3, downloadButton("barPlotDurationTiff", "Download tiff")),
+                column(9, plotOutput("barPlotDuration"))
+              ),
+              #output$barPlotNumberTiff 
+              fluidRow(
+                column(3, downloadButton("barPlotNumberTiff", "Download tiff")),
+                column(9, plotOutput("barPlotN"))
+              ),
+              fluidRow(
+                column(3, downloadButton("barPlotRateTiff", "Download tiff")),
+                column(9, plotOutput("barPlotRate"))
+              )
+              ),
+#               fluidRow(column(12, #downloadButton("downloadPlotEPS", "Download eps-file"),
+#                               plotOutput("barPlotDuration")
+#               )            
+#               )),
+#                fluidRow(column(12,
+# #               fluidRow(column(6,
+# #                               plotOutput("barPlotValue", height=400)
+# #                               ),
+# #                        column(6,
+# #                               plotOutput("barPlotDuration", height=400)
+# #                        )
+# #                        ),
+# #               fluidRow(column(3,   
+#                                plotOutput("barPlotValue", height=400),
+#                                plotOutput("barPlotDuration", height=400),
+#                                plotOutput("barPlotN", height=400),
+#                                plotOutput("barPlotRate", height=400))                                      
+#                )),
 
       tabPanel("Upload data",
                HTML('<p>Additional data</p>'),  

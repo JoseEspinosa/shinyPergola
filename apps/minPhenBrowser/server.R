@@ -112,8 +112,16 @@ data_bedGr$id <- as.numeric (data_bedGr$id)
 min_v <- floor (min (data_bedGr$value))
 max_v <- ceiling (max(data_bedGr$value))
 
+min_t <- floor (min (df.data_bed$start))
+max_t <- ceiling (max(df.data_bed$end))
+
 # Define server logic required to plot various variables against mpg
 shinyServer(function(input, output) {
+  
+  output$windowsize <- renderUI({
+    sliderInput("windowsize", "Windowsize:", min = min(max_t, 1000), max = min(max_t, 1000000), 
+                value =min(max_t, 1000), step = min(max_t, 300))
+  })
   
   output$idSelect <- renderUI({
     selectInput( "id", "Id", choices = choices_id)
@@ -132,6 +140,7 @@ shinyServer(function(input, output) {
   
   pos <-  reactive({
     min( max( input$windowsize + 1, input$tpos ), max(df.data_bed$end) - input$windowsize - 1 )
+#     min( max( output$windowsize + 1, input$tpos ), max(df.data_bed$end) - input$windowsize - 1 )
   })
   
   # Hacer un reactive que lo meta en un table data!!!
@@ -479,6 +488,42 @@ shinyServer(function(input, output) {
       labs (title = "Rate\n") + 
       labs (x = "\nRate", y = "Group\n")
     print(p) 
-  })  
+  })
+  
+  # Download value plot
+  output$barPlotValueTiff <- downloadHandler(
+    filename <- function() { paste('value.tiff') },
+    content <- function(file) {
+    ggsave (file, width = 15, height = 10)
+    },
+    contentType = 'application/tiff'
+  )
+  
+  # Download duration plot
+  output$barPlotDurationTiff <- downloadHandler(
+    filename <- function() { paste('duration.tiff') },
+    content <- function(file) {
+    ggsave (file, width = 15, height = 10)
+    },
+    contentType = 'application/tiff'
+  )
+  
+  # Download duration plot
+  output$barPlotNumberTiff <- downloadHandler(
+    filename <- function() { paste('duration.tiff') },
+    content <- function(file) {
+      ggsave (file, width = 15, height = 10)
+    },
+    contentType = 'application/tiff'
+  )
+
+  # Download duration plot
+  output$barPlotRateTiff <- downloadHandler(
+    filename <- function() { paste('duration.tiff') },
+    content <- function(file) {
+      ggsave (file, width = 15, height = 10)
+    },
+    contentType = 'application/tiff'
+  )
 })
   
