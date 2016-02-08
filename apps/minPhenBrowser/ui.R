@@ -42,41 +42,47 @@ shinyUI(pageWithSidebar(
 
   sidebarPanel(
     conditionalPanel(condition="input.tabs_p=='About'",
-                     h4("Introduction")
+                     h4("Introduction") 
     ),
     conditionalPanel(condition="input.tabs_p=='Upload data'",
-                     h4("Additional information upload"),
-                     fileInput('filePhases', 'Phases CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
-                     tags$hr(),
-                     checkboxInput('header', 'Header', FALSE),
-                     radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
-                     radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"') 
-    ),
+                    h3("Additional information upload"),
+                    
+                    h4("File 2"),
+                    fileInput('fileEnv', 'Choose Additional File', multiple=TRUE, 
+                              accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
+                    tags$hr(),
+                    checkboxInput('header', 'Header', FALSE),
+                    radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
+                    #       radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
+                    radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
+                    #       fileInput('filePhases', 'Phases CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
+                    #       tags$hr(),
+                    #       checkboxInput('header', 'Header', FALSE),
+                    #       radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
+                    #       radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"')  
+                    
+                    h4("File 1"),
+                    fileInput('filePhases', 'Phases CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
+                    tags$hr(),
+                    checkboxInput('header', 'Header', FALSE),
+                    radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
+                    radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"')
+                     
+                                     
+                  ),
     # Load info such as experimental info
     conditionalPanel(condition="input.tabs_p=='Browser'",
                     sliderInput("windowsize", 
-                                "Windowsize:", 
-                                min = 1000,
-                                max = 1000000,
-                                value =1000,
-                                step = 300),
-                    uiOutput("bedGraphRange"),
-                    uiOutput("idSelect"),
-                    uiOutput("genomicPositionSelect"),
-    
-      fileInput('fileEnv', 'Choose Additional File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
-      tags$hr(),
-      checkboxInput('header', 'Header', FALSE),
-      radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
-#       radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
-      radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"')
-#       fileInput('filePhases', 'Phases CSV File', multiple=TRUE, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv', '.bed')),
-#       tags$hr(),
-#       checkboxInput('header', 'Header', FALSE),
-#       radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'), '\t'),
-#       radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"') 
-      )
-    ),
+                               "Windowsize:", 
+                               min = 1000,
+                               max = 1000000,
+                               value =1000,
+                               step = 300),
+                               uiOutput("bedGraphRange"),
+                               uiOutput("idSelect"),
+                               uiOutput("genomicPositionSelect")
+                    )
+  ),
   
   mainPanel(
 #     textOutput("text1"),
@@ -101,6 +107,7 @@ shinyUI(pageWithSidebar(
 #               tableOutput('bedgraph'),
 #               tableOutput('fileEnv')
 
+    )
   )
 )
-))
+)

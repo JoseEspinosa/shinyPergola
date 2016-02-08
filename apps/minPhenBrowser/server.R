@@ -121,7 +121,8 @@ shinyServer(function(input, output) {
   
   output$genomicPositionSelect <- renderUI({
 #     sliderInput( "gpos", "Genomic Position:", min = 10, max = chromlengths[input$chrom] - 10, value = 200 )
-    sliderInput( "tpos", "Time Point:", min = 10, max = max(df.data_bed$end) - 10, value = 569984 )
+#     sliderInput( "tpos", "Time Point:", min = 10, max = max(df.data_bed$end) - 10, value = 569984 )
+    sliderInput( "tpos", "Time Point:", min = 10, max = max(df.data_bed$end) - 10, value = min(df.data_bed$start)+10 )
   })
   
   output$bedGraphRange <- renderUI({
