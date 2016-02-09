@@ -449,52 +449,66 @@ shinyServer(function(input, output) {
     df_t
   }) 
   
-  output$barPlotValue <- renderPlot({  
-    p = ggplot(data = df_mean(), aes(x=group, y=meanValue, fill=group)) +
+  value_plot <- reactive({
+    ggplot(data = df_mean(), aes(x=group, y=meanValue, fill=group)) +
       geom_bar(stat="identity", position=position_dodge()) +
       geom_errorbar(aes(ymin=meanValue-std.errorValue, ymax=meanValue+std.errorValue), width=.2, position=position_dodge(.9)) +
       scale_fill_manual(values=colours_v) +
       labs (title = "Mean value\n") + 
       labs (x = "\nMean value", y = "Group\n")
-    print(p) 
   })
 
-  output$barPlotDuration <- renderPlot({  
-    p = ggplot(data = df_mean(), aes(x=group, y=meanDuration, fill=group)) +
+
+  output$barPlotValue <- renderPlot({  
+    print(value_plot()) 
+  })
+
+  duration_plot <- reactive({  
+    ggplot(data = df_mean(), aes(x=group, y=meanDuration, fill=group)) +
       geom_bar(stat="identity", position=position_dodge()) +
       geom_errorbar(aes(ymin=meanDuration-std.errorDuration, ymax=meanDuration+std.errorDuration), width=.2, position=position_dodge(.9)) +
       scale_fill_manual(values=colours_v) +
       labs (title = "Length\n") + 
       labs (x = "\nLength", y = "Group\n")
-    print(p) 
   })  
   
+  output$barPlotDuration <- renderPlot({  
+    print(duration_plot())
+  })
+
   # Number of events
-  output$barPlotN <- renderPlot({  
-    p = ggplot(data = df_mean(), aes(x=group, y=number, fill=group)) +
+  number_plot <- reactive({  
+    ggplot(data = df_mean(), aes(x=group, y=number, fill=group)) +
       geom_bar(stat="identity", position=position_dodge()) +
       scale_fill_manual(values=colours_v) +
       labs (title = "Number of events\n") + 
       labs (x = "\nNumber", y = "Group\n")
-  print(p) 
   })  
+  
+  output$barPlotN <- renderPlot({  
+    print(number_plot())
+  })
 
   # Rate
-  output$barPlotRate <- renderPlot({  
-    p = ggplot(data = df_mean(), aes(x=group, y=meanRate, fill=group)) +
+  rate_plot <- reactive({  
+    ggplot(data = df_mean(), aes(x=group, y=meanRate, fill=group)) +
       geom_bar(stat="identity", position=position_dodge()) +
       geom_errorbar(aes(ymin=meanRate-std.errorRate, ymax=meanRate+std.errorRate), width=.2, position=position_dodge(.9)) +
       scale_fill_manual(values=colours_v) +
       labs (title = "Rate\n") + 
       labs (x = "\nRate", y = "Group\n")
-    print(p) 
+  })
+  
+  output$barPlotRate <- renderPlot({  
+    print(rate_plot())
   })
   
   # Download value plot
   output$barPlotValueTiff <- downloadHandler(
     filename <- function() { paste('value.tiff') },
     content <- function(file) {
-    ggsave (file, width = 15, height = 10)
+    ggsave (file, plot = value_plot(), width = 15, height = 10)
+  
     },
     contentType = 'application/tiff'
   )
@@ -503,25 +517,25 @@ shinyServer(function(input, output) {
   output$barPlotDurationTiff <- downloadHandler(
     filename <- function() { paste('duration.tiff') },
     content <- function(file) {
-    ggsave (file, width = 15, height = 10)
+    ggsave (file, plot = duration_plot(), width = 15, height = 10)
     },
     contentType = 'application/tiff'
   )
   
-  # Download duration plot
+  # Download n_events plot
   output$barPlotNumberTiff <- downloadHandler(
-    filename <- function() { paste('duration.tiff') },
+    filename <- function() { paste('n_events.tiff') },
     content <- function(file) {
-      ggsave (file, width = 15, height = 10)
+      ggsave (file, plot = number_plot(), width = 15, height = 10)
     },
     contentType = 'application/tiff'
   )
 
-  # Download duration plot
+  # Download rate plot
   output$barPlotRateTiff <- downloadHandler(
-    filename <- function() { paste('duration.tiff') },
+    filename <- function() { paste('rate.tiff') },
     content <- function(file) {
-      ggsave (file, width = 15, height = 10)
+      ggsave (file, plot = rate_plot(), width = 15, height = 10)
     },
     contentType = 'application/tiff'
   )
