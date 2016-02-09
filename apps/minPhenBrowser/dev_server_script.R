@@ -24,11 +24,12 @@ list_files <-list.files(path=path_files ,pattern = "^tr.*.bed$")
 
 caseGroupLabel <- "case"
 controlGroupLabel <- "control"
-nAnimals <- 18
+# nAnimals <- 18
+nTracks <- length(list_files) # I get the number of tracks maybe what I have to change is how to assign the groups
 
 #Label by experimental group (control, free choice, force diet...)
-id <- c (1 : nAnimals)
-group <- c (rep (controlGroupLabel, nAnimals/2), rep (caseGroupLabel, nAnimals/2))
+id <- c (1 : nTracks)
+group <- c (rep (controlGroupLabel, nTracks/2), rep (caseGroupLabel, nTracks/2))
 df.id_group <- data.frame (id, group)
 df.id_group$group [which (id %% 2 != 0)] <- controlGroupLabel
 df.id_group$group [which (id %% 2 == 0)] <- caseGroupLabel
@@ -199,7 +200,8 @@ setwd(path_files)
 list_files_bedGr <-list.files(path=path_files ,pattern = ".bedGraph$")
 # list_files_bedGr
 
-nAnimals <- 4
+# nAnimals <- 4
+nAnimals <- length(list_files_bedGr) # I get the number of tracks maybe what I have to change is how to assign the groups
 
 #Label by experimental group (control, free choice, force diet...)
 id <- c (1 : nAnimals)
@@ -308,7 +310,9 @@ df_env
 df_env
 # This values are not working debugging
 input_windowsize <- 1000000
+windowsize<-71800
 pos <- 780868
+pos <- 365476
 range_win <- c (max( pos - input_windowsize, 0 ), min( pos + input_windowsize, max(df_env$V3)))
 # range_win <- c(568984.00, 570925.00)
 

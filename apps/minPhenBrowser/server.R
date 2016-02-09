@@ -32,11 +32,11 @@ list_files <-list.files(path=path_files ,pattern = "^tr.*.bed$")
 
 caseGroupLabel <- "case"
 controlGroupLabel <- "control"
-nAnimals <- 18
+nTracks <- 18
 
 #Label by experimental group (control, free choice, force diet...)
-id <- c (1 : nAnimals)
-group <- c (rep (controlGroupLabel, nAnimals/2), rep (caseGroupLabel, nAnimals/2))
+id <- c (1 : nTracks)
+group <- c (rep (controlGroupLabel, nTracks/2), rep (caseGroupLabel, nTracks/2))
 df.id_group <- data.frame (id, group)
 df.id_group$group [which (id %% 2 != 0)] <- controlGroupLabel
 df.id_group$group [which (id %% 2 == 0)] <- caseGroupLabel
@@ -82,11 +82,12 @@ df.data_bed$group_id <- factor(df.data_bed$group_id,
 ## Bedgraph files
 list_files <-list.files(path=path_files ,pattern = "^tr.*.bed$")
 list_files_bedGr <- list.files (path=path_files ,pattern = "^tr.*.bedGraph$")
-nAnimals <- 18
+# nAnimals <- 18
+nTracksBedGr <- length(list_files_bedGr)
 
 #Label by experimental group (control, free choice, force diet...)
-id <- c (1 : nAnimals)
-group <- c (rep (controlGroupLabel, nAnimals/2), rep (caseGroupLabel, nAnimals/2))
+id <- c (1 : nTracksBedGr)
+group <- c (rep (controlGroupLabel, nTracksBedGr/2), rep (caseGroupLabel, nTracksBedGr/2))
 df.id_group <- data.frame (id, group)
 df.id_group$group [which (id %% 2 != 0)] <- controlGroupLabel
 df.id_group$group [which (id %% 2 == 0)] <- caseGroupLabel
