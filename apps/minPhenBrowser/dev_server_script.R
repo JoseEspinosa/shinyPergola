@@ -83,7 +83,7 @@ f = as.factor(letters[1:20])
 fn = factor(f, levels=f[order(a,b,f)], ordered=TRUE)
 ## Commented
 # df.data_bed$group_id = factor(df.data_bed$group_id, levels=df.data_bed$group_id[order(df.data_bed$order_v,df.data_bed$group_id[)], ordered=TRUE)
-# df.data_bed_filt  <- transform (df.data_bed_filt [which (df.data_bed_filt$group == controlGroupLabel), ], new_id=match(group_id, unique(group_id)))
+df.data_bed_filt  <- transform (df.data_bed_filt [which (df.data_bed_filt$group == controlGroupLabel), ], new_id=match(group_id, unique(group_id)))
 # transform (df.data_bed_filt [which (df.data_bed_filt$group == caseGroupLabel), ], new_id=match(group_id, unique(group_id)))
 
 # df.data_bed <- transform (df.data_bed, new_id=match(group_id, unique(group_id)))
@@ -177,22 +177,39 @@ class(df.data_bed_filt$n_group)
 
 ################################################
 # New plot with group and track as 1_1, 1_2, ...
-p <- ggplot (data = df.data_bed_filt) + 
+p_new_bed <- ggplot (data = df.data_bed_filt) + 
   #      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
-  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = 1, fill=group)) +
+  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = 1, fill=group), show.legend=FALSE) +
 #   geom_text (data=df.bed.min, aes(x = start, y = 0.5, label=id)) +
-  scale_y_continuous(limits=c(0,1), breaks=c(0,1), labels=c(0,1))  +
+  scale_y_continuous(limits=c(0,1), breaks=NULL, labels=c(0,1))  +
 #   theme(strip.background = element_blank(), axis.title.y=element_blank(), axis.title.x=element_blank()) +
 #   facet_wrap(~ group_id, ncol= 1)
   facet_grid(group_id ~ .) 
 #   facet_wrap (~ group_id, nrow= 1) + 
+p_new_bed
+# ggplot(data = data()) +
+#   #       geom_rect(aes(xmin = start, xmax = end, ymin = new_id, ymax = new_id + 0.9, fill=group)) +
+#   geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = 1, fill=group)) +
+#   #       geom_text (aes(x=min(start), y=max(end), label=id), size=4) +
+#   #       geom_text (aes(x=-10, y=0.5, label=id), size=4) +
+#   scale_fill_manual(values=colours_v) +
+#   #       scale_y_continuous(limits=c(min_tr, n_tracks + 1), breaks=unique(data()$new_id) + 0.5, labels=unique(data()$id)) +
+#   scale_y_continuous(limits=c(0,1), breaks=NULL, labels=unique(data()$id))  +
+#   scale_x_continuous(limits=range_x(), breaks =NULL) +
+#   theme(axis.text.y = element_text(size=10), axis.line.x=element_blank(), #strip.background = element_blank(),
+#         legend.position="none", strip.text.x = element_blank(), strip.text.y = element_text(size=8)) +
+#   #       facet_wrap(~ group_id, ncol= 1)
+#   #       facet_grid(group_id ~ .)
+#   facet_grid(group_id ~ .)
+p_new_bed
+
 head(df.data_bed_filt)
 tail(df.data_bed_filt)
 p
 
 ##########################
 ### Reading BEDGRAPH files
-path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test"
+path_files <- "/Users/jespinosa/git/shinyPergola/data/bed4test_all/"
 
 colours_v <- c("darkgreen", "red", "magenta", "black") 
 
@@ -256,7 +273,7 @@ head (tr_1)
 
 p <- ggplot (data = tr_1, fill=group) + 
 #      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
-     geom_rect (aes(xmin = start, xmax = end, ymin = id, ymax = id + value)) 
+     geom_rect (aes(xmin = start, xmax = end, ymin = id, ymax = id + value), show.legend=FALSE) 
 p
 library("gridExtra")
 grid.arrange(p,p, heights = c(5/10, 5/10)) 
@@ -275,8 +292,10 @@ df.dataBedgraph_f$group <- factor(df.dataBedgraph_f$group , levels=c("control","
 
 p <- ggplot (data = df.dataBedgraph_f) + 
   #      geom_line(data = tr_1, aes(x = , y = Percent.Change, color = "red"))
-  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
-  scale_y_continuous(limits=input_bedGraphRange, breaks=input_bedGraphRange, labels=input_bedGraphRange)  + 
+  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group), show.legend=FALSE) +
+#   geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
+#   scale_y_continuous(limits=input_bedGraphRange, breaks=input_bedGraphRange, labels=input_bedGraphRange)  +
+  scale_y_continuous(limits=input_bedGraphRange, breaks=NULL, labels=input_bedGraphRange)  +
   facet_wrap(~ group_id, ncol= 1)
 p
 
@@ -285,15 +304,48 @@ p_bedGraph <- p + theme(strip.background = element_blank(),
        strip.text.x = element_blank())
 p_bedGraph
 # http://www.r-bloggers.com/r-recipe-aligning-axes-in-ggplot2/
+# In this one there are several example that might be of interest
+# http://stackoverflow.com/questions/16255579/how-can-i-make-consistent-width-plots-in-ggplot-with-legends
 library(gridExtra)
-p1 <- ggplot_gtable(ggplot_build(p_bed))
+grid.arrange(p_new_bed, p_bedGraph)
+p1 <- ggplot_gtable(ggplot_build(p_new_bed))
 p2 <- ggplot_gtable(ggplot_build(p_bedGraph))
-maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3])
-p1$widths[2:3] <- maxWidth
-p2$widths[2:3] <- maxWidth
+p1$widths
+p2$widths
+
+p1$widths <- p2$widths
+grid.arrange(p1, p2)
+
+## solution with ggplotGrob
+## https://github.com/baptiste/gridextra/wiki/arrange-ggplot
+g2<- ggplotGrob(p_new_bed)
+g3 <- ggplotGrob(p_bedGraph)
+g <- rbind(g2, g3, size="first")
+g$widths <- unit.pmax(g2$widths, g3$widths)
+grid.newpage()
+grid.draw(g)
+
+# Old solution
+maxWidth = unit.pmax(p1$widths[2:5], p2$widths[2:5])
+p1$widths[2:5] <- maxWidth
+p2$widths[2:5] <- maxWidth
 
 grid.arrange(p1, p2, heights = c(2, 2)) 
 
+#### Bedgraph plot with all tracks
+max(df.dataBedgraph_f$end)
+p_bedGr<- ggplot (data = df.dataBedgraph_f) + 
+  geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
+  scale_fill_manual(values=colours_v) +
+  scale_y_continuous(limits=input_bedGraphRange, breaks=input_bedGraphRange, labels=input_bedGraphRange) + 
+  #     scale_x_continuous(limits=range_x(), breaks=NULL) +
+#   scale_x_continuous(limits=range_x()) +
+  scale_x_continuous(limits=c(300,1780800)) +
+  #     facet_wrap(~group_id, ncol= 1) + 
+  facet_grid(group_id ~ .) +
+  theme(axis.text.y = element_text(size=10), #strip.background = element_blank(), axis.line.x=element_blank(),
+        legend.position="none", strip.text.x = element_blank(), strip.text.y = element_text(size=8)) 
+p_bedGr
 
 ############
 ## Ploting environmental info
