@@ -325,7 +325,8 @@ shinyServer(function(input, output) {
     ggplot (data = dataBedgraph()) + 
     geom_rect (aes(xmin = start, xmax = end, ymin = 0, ymax = value, fill=group)) +
     scale_fill_manual(values=colours_v) +
-    scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
+#     scale_y_continuous(limits=input$bedGraphRange, breaks=input$bedGraphRange, labels=input$bedGraphRange) + 
+    scale_y_continuous(limits=input$bedGraphRange, breaks=NULL, labels=input$bedGraphRange) + 
 #     scale_x_continuous(limits=range_x(), breaks=NULL) +
     scale_x_continuous(limits=range_x()) +
 #     facet_wrap(~group_id, ncol= 1) + 
@@ -374,39 +375,84 @@ shinyServer(function(input, output) {
     }
   })
 
+# Old version not working when legend is not shown
+#   output$intervals <- renderPlot({ 
+#     if (is.null (env_p()) & is.null(phases_p())) {
+#         p1 <- ggplot_gtable(ggplot_build(interv_p()))
+#         p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
+#   #     p3 <- ggplot_gtable(ggplot_build(env_p()))
+#       
+#       maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3])
+#   #     maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
+#   
+#       p1$widths[2:3] <- maxWidth
+#       p2$widths[2:3] <- maxWidth
+#   #     p3$widths[2:3] <- maxWidth
+#       
+#   #     grid.arrange(p1, p2, p3, heights = c(2, 2))
+#       grid.arrange(p1, p2, heights = c(2, 2)) 
+#     }
+#     else if (is.null (env_p())) {
+#       p1 <- ggplot_gtable(ggplot_build(interv_p()))
+#       p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
+#       p3 <- ggplot_gtable(ggplot_build(phases_p()))
+#       
+#       maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
+#       
+#       p1$widths[2:3] <- maxWidth
+#       p2$widths[2:3] <- maxWidth
+#       p3$widths[2:3] <- maxWidth
+#       
+#       grid.arrange(p3, p1, p2, heights = c(0.25, 2, 2))
+#     }
+#     else if (is.null (phases_p())) {
+#       p1 <- ggplot_gtable(ggplot_build(interv_p()))
+#       p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
+#       p3 <- ggplot_gtable(ggplot_build(env_p()))
+#       
+#       maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
+#       
+#       p1$widths[2:3] <- maxWidth
+#       p2$widths[2:3] <- maxWidth
+#       p3$widths[2:3] <- maxWidth
+#       
+#       grid.arrange(p3, p1, p2, heights = c(0.25, 2, 2))
+#     }
+#     else {
+#       p1 <- ggplot_gtable(ggplot_build(interv_p()))
+#       p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
+#       p3 <- ggplot_gtable(ggplot_build(env_p()))
+#       p4 <- ggplot_gtable(ggplot_build(phases_p()))
+#       
+#       maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3], p4$widths[2:3])
+#       
+#       p1$widths[2:3] <- maxWidth
+#       p2$widths[2:3] <- maxWidth
+#       p3$widths[2:3] <- maxWidth
+#       p4$widths[2:3] <- maxWidth
+#         
+#       grid.arrange(p3, p4, p1, p2, heights = c(0.25, 0.25, 2, 2))
+#     }
+#   })
+  
   output$intervals <- renderPlot({ 
     if (is.null (env_p()) & is.null(phases_p())) {
-        p1 <- ggplot_gtable(ggplot_build(interv_p()))
-        p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
-  #     p3 <- ggplot_gtable(ggplot_build(env_p()))
-      
-      maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3])
-  #     maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
-  
-      p1$widths[2:3] <- maxWidth
-      p2$widths[2:3] <- maxWidth
-  #     p3$widths[2:3] <- maxWidth
-      
-  #     grid.arrange(p1, p2, p3, heights = c(2, 2))
-      grid.arrange(p1, p2, heights = c(2, 2)) 
+        p1 <-interv_p()
+        p2 <- bedgraph_p()
+
+        grid.arrange(p1, p2, heights = c(2, 2)) 
     }
     else if (is.null (env_p())) {
-      p1 <- ggplot_gtable(ggplot_build(interv_p()))
-      p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
-      p3 <- ggplot_gtable(ggplot_build(phases_p()))
-      
-      maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
-      
-      p1$widths[2:3] <- maxWidth
-      p2$widths[2:3] <- maxWidth
-      p3$widths[2:3] <- maxWidth
+      p1 <- interv_p()
+      p2 <- bedgraph_p()
+      p3 <- phases_p()
       
       grid.arrange(p3, p1, p2, heights = c(0.25, 2, 2))
     }
     else if (is.null (phases_p())) {
-      p1 <- ggplot_gtable(ggplot_build(interv_p()))
-      p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
-      p3 <- ggplot_gtable(ggplot_build(env_p()))
+      p1 <- interv_p()
+      p2 <- bedgraph_p()
+      p3 <- env_p()
       
       maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3])
       
@@ -417,22 +463,15 @@ shinyServer(function(input, output) {
       grid.arrange(p3, p1, p2, heights = c(0.25, 2, 2))
     }
     else {
-      p1 <- ggplot_gtable(ggplot_build(interv_p()))
-      p2 <- ggplot_gtable(ggplot_build(bedgraph_p()))
-      p3 <- ggplot_gtable(ggplot_build(env_p()))
-      p4 <- ggplot_gtable(ggplot_build(phases_p()))
-      
-      maxWidth = unit.pmax(p1$widths[2:3], p2$widths[2:3], p3$widths[2:3], p4$widths[2:3])
-      
-      p1$widths[2:3] <- maxWidth
-      p2$widths[2:3] <- maxWidth
-      p3$widths[2:3] <- maxWidth
-      p4$widths[2:3] <- maxWidth
+      p1 <- interv_p()
+      p2 <- bedgraph_p()
+      p3 <- env_p()
+      p4 <- phases_p()
         
       grid.arrange(p3, p4, p1, p2, heights = c(0.25, 0.25, 2, 2))
     }
   })
-  
+
   df_mean  <- reactive({
 #     with (data() , aggregate (cbind (value), list (group=group), mean))
     df_t <- with (data(), aggregate (cbind (value, duration, rate), list (group=group),FUN=function (x) c (mean=mean(x), std.error=std.error(x), length(x))))
