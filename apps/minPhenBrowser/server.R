@@ -42,7 +42,11 @@ df.id_group$group [which (id %% 2 != 0)] <- controlGroupLabel
 df.id_group$group [which (id %% 2 == 0)] <- caseGroupLabel
 
 data_bed = do.call (rbind, lapply (list_files, y <- function (x) { data <- read.table (x)
-                                                                   id <- gsub("(^tr_)(\\d+)(_.+$)", "\\2", x)
+                                                                   print (x)
+                                                                   # Getting everthing between "tr_" and _dtSecond parenthesis
+                                                                   # Second parenthesis retrieve id
+#                                                                    id <- gsub("(^tr_)(\\d+)(_.+$)", "\\2", x)
+                                                                   id <-gsub("(^tr_)([^.]+)(_dt.+$)", "\\2", x)
                                                                    data$id <- id                                                                   
                                                                    return (data) }))
 
