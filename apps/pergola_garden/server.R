@@ -8,8 +8,9 @@
 ### Change color scheme with a color blind friendly scheme, some ideas here:             ###
 ### http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/#a-colorblind-friendly-palette ###
 ############################################################################################
-
-# runApp ("/Users/jespinosa/git/shinyPergola/apps/minPhenBrowser")
+### TODO                                                                                 ###
+### Control for folder with several dataTypes                                            ###
+############################################################################################
 
 library(shiny)
 # library(datasets)
@@ -30,11 +31,13 @@ setwd(path_files)
 # list_files <-list.files(path=path_files ,pattern = ".bed$")
 list_files <-list.files(path=path_files ,pattern = "^tr.*.bed$")
 
-caseGroupLabel <- "case"
-controlGroupLabel <- "control"
-nTracks <- 18
+## I have to decide whether groups should be assigned using a file or by a menu in any case as a first approach
+## I can assign all animals to a fake same group so that I have a tbl with the field groups and the I will see
+# caseGroupLabel <- "case"
+# controlGroupLabel <- "control"
+# nTracks <- 18
 
-#Label by experimental group (control, free choice, force diet...)
+## Label by experimental group (control, free choice, force diet...)
 # id <- c (1 : nTracks)
 # group <- c (rep (controlGroupLabel, nTracks/2), rep (caseGroupLabel, nTracks/2))
 # df.id_group <- data.frame (id, group)
@@ -52,13 +55,25 @@ data_bed = do.call (rbind, lapply (list_files, y <- function (x) { data <- read.
                                                                    data$id <- id                                                                   
                                                                    return (data) }))
 
-# Id retrieves from bed file
-# Each file should have an id, if this is not true, generate random labels
-if (length(unique(data_bed$id)) == length(unique(list_files))) {
-    print ("same number of id and files")    
-  }
+# Deprecated, I always will have same number of ids and files, if files are named in the same way they cannot
+# be in the same folder this should be managed outside
+# Actually if the files do not have an annotated track then the only way to do this is to manually name them
+# and if they have they then have different tracks ids
+# # Id retrieves from bed file
+# # Each file should have an id, if this is not true, generate random labels
+# if (length(unique(data_bed$id)) != length(unique(list_files))) {    
+#     write ("The number of track ids and files do not match, thus new ids are assigned\n", stderr()) 
+#     num_ids <- c (1: length(unique(list_files)))
+#     print (num_ids)
+#   }
 
-#df.data_bed <- merge (data_bed, df.id_group , by.x= "id", by.y = "id")
+id <- unique(data_bed$id)
+df.id_group <- data.frame (id, "1")
+df.data_bed <- merge (data_bed, df.id_group, by.x= "id", by.y = "id")
+
+# data_bed<- cbind ("id_1",data_bed )
+# df.data_bed <- data_bed 
+# df.data_bed$group <- "1"   
 
 colnames (df.data_bed) <- c("id", "chr", "start", "end", "V4", "value", "strand", "V7", "V8", "V9", "group")
 choices_id <- unique (df.data_bed$id)
@@ -74,13 +89,16 @@ df.data_bed <- transform(df.data_bed, new_id=match(group_id, unique(group_id)))
 df.data_bed$duration <- df.data_bed$end - df.data_bed$start
 df.data_bed$rate <- df.data_bed$value / df.data_bed$duration 
 
-df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
-                            labels=c("control", "case"))
+# This was to order control above and hf below, but this is a hardcode I have to think about a different system
+# df.data_bed$group <- factor(df.data_bed$group , levels=c("control", "case"), 
+#                             labels=c("control", "case"))
 
-df.data_bed$n_group <- c(1:length (df.data_bed$group))
-df.data_bed$n_group [df.data_bed$group == controlGroupLabel] <- 1
-df.data_bed$n_group [df.data_bed$group == caseGroupLabel] <- 2
-df.data_bed$group_id <- paste (df.data_bed$n_group, df.data_bed$id, sep="_")
+# df.data_bed$n_group <- c(1:length (df.data_bed$group))
+# df.data_bed$n_group [df.data_bed$group == controlGroupLabel] <- 1
+# df.data_bed$n_group [df.data_bed$group == caseGroupLabel] <- 2
+# df.data_bed$group_id <- paste (df.data_bed$n_group, df.data_bed$id, sep="_")
+df.data_bed$n_group <- 1
+# head (df.data_bed)
 
 # df.data_bed$group_id <- factor(df.data_bed$group_id, levels=df.data_bed$group_id 
 #                                [order(as.numeric(df.data_bed$n_group), as.numeric(df.data_bed$id))], ordered=TRUE)
@@ -92,38 +110,43 @@ df.data_bed$group_id <- factor(df.data_bed$group_id,
 # min_tr <- min(df.data_bed$id)
 
 ## Bedgraph files
-list_files <-list.files(path=path_files ,pattern = "^tr.*.bed$")
 list_files_bedGr <- list.files (path=path_files ,pattern = "^tr.*.bedGraph$")
-# nAnimals <- 18
 nTracksBedGr <- length(list_files_bedGr)
 
-#Label by experimental group (control, free choice, force diet...)
-id <- c (1 : nTracksBedGr)
-group <- c (rep (controlGroupLabel, nTracksBedGr/2), rep (caseGroupLabel, nTracksBedGr/2))
-df.id_group <- data.frame (id, group)
-df.id_group$group [which (id %% 2 != 0)] <- controlGroupLabel
-df.id_group$group [which (id %% 2 == 0)] <- caseGroupLabel
+# Deprecated
+## Label by experimental group (control, free choice, force diet...)
+# id <- c (1 : nTracksBedGr)
+# group <- c (rep (controlGroupLabel, nTracksBedGr/2), rep (caseGroupLabel, nTracksBedGr/2))
+# df.id_group <- data.frame (id, group)
+# df.id_group$group [which (id %% 2 != 0)] <- controlGroupLabel
+# df.id_group$group [which (id %% 2 == 0)] <- caseGroupLabel
 
 data_bedGr = do.call (rbind, lapply (list_files_bedGr, y <- function (x) { data <- read.table (x)
                                                                            id <- gsub("(^tr_)(\\d+)(_.+$)", "\\2", x)
                                                                            data$id <- id                                                                   
                                                                            return (data) }))
 
-data_bedGr <- merge (data_bedGr, df.id_group, by.x= "id", by.y = "id")
-colnames (data_bedGr) <- c("id", "chrom", "start", "end", "value", "group")
+# data_bedGr <- merge (data_bedGr, df.id_group, by.x= "id", by.y = "id")
 
-data_bedGr$group <- factor(data_bedGr$group , levels=c("control", "case"), 
-                           labels=c("control", "case"))
+id <- unique(data_bedGr$id)
+df.id_group_bedGr <- data.frame (id, "1")
+df.data_bedGr <- merge (data_bedGr, df.id_group_bedGr, by.x= "id", by.y = "id")
+head (df.data_bedGr)
+colnames (df.data_bedGr) <- c("id", "chrom", "start", "end", "value", "group")
 
-
-data_bedGr$n_group <- c(1:length (data_bedGr$group))
-data_bedGr$n_group [data_bedGr$group == controlGroupLabel] <- 1
-data_bedGr$n_group [data_bedGr$group == caseGroupLabel] <- 2
-data_bedGr$group_id <- paste (data_bedGr$n_group, data_bedGr$id, sep="_")
-
-data_bedGr$id <- as.numeric (data_bedGr$id)
-min_v <- floor (min (data_bedGr$value))
-max_v <- ceiling (max(data_bedGr$value))
+# df.data_bedGr$group <- factor(df.data_bedGr$group , levels=c("control", "case"), 
+#                            labels=c("control", "case"))
+# n_tracks <- length(unique(df.data_bedGr$id))
+# 
+# df.data_bedGr$n_group <- c(1:length (df.data_bedGr$group))
+# df.data_bedGr$n_group [df.data_bedGr$group == controlGroupLabel] <- 1
+# df.data_bedGr$n_group [df.data_bedGr$group == caseGroupLabel] <- 2
+# df.data_bedGr$group_id <- paste (df.data_bedGr$n_group, df.data_bedGr$id, sep="_")
+df.data_bedGr$n_group <- 1
+df.data_bedGr$group_id <- paste (df.data_bedGr$n_group, df.data_bedGr$id, sep="_")
+df.data_bedGr$id <- as.numeric (df.data_bedGr$id)
+min_v <- floor (min (df.data_bedGr$value))
+max_v <- ceiling (max (df.data_bedGr$value))
 
 min_t <- floor (min (df.data_bed$start))
 max_t <- ceiling (max(df.data_bed$end))
@@ -202,8 +225,8 @@ shinyServer(function(input, output) {
   })
 
   dataBedgraph <- reactive({    
-    df.dataBedgraph_f <- data_bedGr [which (data_bedGr$start > max( pos() - input$windowsize, 0 ) & 
-                                            data_bedGr$end < min( pos() + input$windowsize, max(data_bedGr$end))),]
+    df.dataBedgraph_f <- df.data_bedGr [which (df.data_bedGr$start > max( pos() - input$windowsize, 0 ) & 
+                                            df.data_bedGr$end < min( pos() + input$windowsize, max(df.data_bedGr$end))),]
     df.dataBedgraph_f [which (df.dataBedgraph_f$value < input$bedGraphRange [1]), "value"] <- input$bedGraphRange [1] + 0.001
     df.dataBedgraph_f [which (df.dataBedgraph_f$value > input$bedGraphRange [2]), "value"] <- input$bedGraphRange [2] - 0.001
     
