@@ -7,18 +7,19 @@ col_case <- col_gr_2
 base_dir <- "/Users/jespinosa/git/shinyPergola/data"
 
 # data_dir <- dir(file.path(base_dir,"bed4test"))
-data_dir <- file.path(base_dir,"bed4test")
+# data_dir <- file.path(base_dir,"bed4test")
+data_dir <- file.path(base_dir,"bed4test_all")
 
 # exp_info$sample
 kal_dirs <- perg_bed_files <- sapply(exp_info$sample, function(id) file.path(data_dir, paste(id, ".bed", sep="")))
 
-
+# s2c <- exp_info <- read.table(file.path(base_dir, "exp_info_test.txt"), header = TRUE, stringsAsFactors=FALSE)
 s2c <- exp_info <- read.table(file.path(base_dir, "exp_info.txt"), header = TRUE, stringsAsFactors=FALSE)
 s2c <- dplyr::mutate(s2c, path = kal_dirs)
-s2c
+# s2c
 
 unique(exp_info$condition)
-grps
+# grps
 g_min_start <- 100000000
 g_max_end <- -100000000
 bed2pergViz <- function (df, gr_df) {
@@ -72,7 +73,7 @@ for (i in 1:length(l_gr_annotation_tr)){
 # min_t <- floor (min (df.data_bed$start))
 # max_t <- ceiling (max(df.data_bed$end))
 
-g_tr <- GRanges()
+# g_tr <- GRanges()
 
 # Define server logic required to plot various variables against mpg
 shinyServer(function(input, output) {
