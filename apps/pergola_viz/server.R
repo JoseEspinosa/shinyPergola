@@ -3,6 +3,9 @@ col_gr_1 <- "darkblue"
 col_gr_2 <- "brown"
 col_ctrl <- col_gr_1
 col_case <- col_gr_2
+cb_palette <- c("#999999", "#E69F00", "#56B4E9",
+                "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# "lightblue", "darkblue",
 
 base_dir <- "/Users/jespinosa/git/shinyPergola/data"
 
@@ -42,20 +45,25 @@ bed2pergViz <- function (df, gr_df, format_f="BED") {
            lapply(gr_files, function (bed) {             
              id <- gsub(".+tr_(\\d+)(_.+$)", "\\1", bed)
              bed_GR <- import(bed, format = format_f)
-
-             min_start <- min(start(bed_GR))
-             max_end <- max(end(bed_GR))
+             
+             if (format_f == "BED") {
+               min_start <- min(start(bed_GR))
+               max_end <- max(end(bed_GR))
+               
+               tr <- AnnotationTrack(bed_GR, name = paste ("", id, sep=""))#, fill=col_ctrl, background.title = col_ctrl)               
+             }
+             
+             if (format_f == "bedGraph") {
+               min_start <- min(bed_GR$score)
+               max_end <- max(bed_GR$score)
+#                scores <- as.vector(mcols(bed_GR))
+#                tr <- DataTrack(bed_GR, name = paste ("", id, sep=""))#, fill=col_ctrl, background.title = col_ctrl)               
+               tr <- bed_GR
+             }
 
              if (g_min_start > min_start) { g_min_start <<- min_start }
              if (g_max_end < max_end) { g_max_end <<- max_end }
-             
-             if (format_f == "BED") {
-               tr <- AnnotationTrack(bed_GR, name = paste ("", id, sep=""))#, fill=col_ctrl, background.title = col_ctrl)               
-             }
-             if (format_f == "bedGraph") {
-#                scores <- as.vector(mcols(bed_GR))
-               tr <- DataTrack(bed_GR, name = paste ("", id, sep=""))#, fill=col_ctrl, background.title = col_ctrl)               
-             }
+
              return (tr) })
          })
   
@@ -63,33 +71,75 @@ bed2pergViz <- function (df, gr_df, format_f="BED") {
   return (r)
 }
 
-bedg2pergViz <- function (df, gr_df, format_f="bedGraph") {
-  grps <- as.character(gr_df[[setdiff(colnames(gr_df), 'sample')]])
-  
-  r <- lapply(unique(grps),
-              function(g) {
-                gr_samps <- grps %in% g
-                gr_files <- df$path[gr_samps]
-                
-                lapply(gr_files, function (bedg) {             
-                  id <- gsub(".+tr_(\\d+)(_.+$)", "\\1", bedg)
-                  bed_GR <- import(bedg, format = format_f)
-                  data <- read.table (bedg)
-                  min_start <- min(data$V2)
-                  max_end <- max(data$V3)
+l_gr_annotation_tr_bed <- bed2pergViz (b2v, exp_info)
 
-                  if (g_min_start > min_start) { g_min_start <<- min_start }
-                  if (g_max_end < max_end) { g_max_end <<- max_end }
+list_all <- list()
 
-#                   return (data$V4) })
-                return (bed_GR) })
-              })
+for (i in 1:length(l_gr_annotation_tr_bed)){
+  list_gr <- lapply (l_gr_annotation_tr_bed[[i]], function (l, color=cb_palette[i]) { 
+    displayPars(l) <- list(fill=color, background.title = color, col=NULL) 
+    return (l)
+  })
   
-  names(r) <- unique(grps)
-  return (r)
+  list_all <- append(list_all, list_gr)  
 }
 
-l_gr_annotation_tr_bg <- bedg2pergViz (bg2v, exp_info, "bedGraph") 
+l_gr_annotation_tr_bg <- bed2pergViz (bg2v, exp_info, "bedGraph") 
+list_all_bg <- list()
+
+# min(l_gr_annotation_tr_bg[[1]][[1]]$score)
+
+for (i in 1:length(l_gr_annotation_tr_bg)){
+#   list_gr_bg <- lapply (l_gr_annotation_tr_bg[[i]], function (l, color=cb_palette[i]) { 
+    #     displayPars(l) <- list(col=color, type="l", ylim = c(0, 0.5)) 
+    for (j in 1:length(l_gr_annotation_tr_bg[[i]])){
+      GR <- l_gr_annotation_tr_bg[[i]][[j]]
+#       print (names (l_gr_annotation_tr_bg[[i]][j]))
+      id <- gsub(".+tr_(\\d+)(_.+$)", "\\1", names (l_gr_annotation_tr_bg[[i]][j]))
+      d_tr <- DataTrack(GR, name = id, background.title = cb_palette[i],
+                        type="heatmap", ylim = c(0, 0.5),
+                        gradient=c('white','blue'))#, fill=col_ctrl, background.title = col_ctrl) 
+      
+#       list_all_bg <- append(list_all_bg, list_gr_bg)   
+      list_all_bg <- append (list_all_bg, d_tr)
+    }
+    
+    
+#     displayPars(l) <- list(type="heatmap", ylim = c(0, 0.5),
+#                            gradient=c('white','blue')) 
+   
+  #   displayPars(annotation_tr) <- list(fill=cb_palette[i], background.title = cb_palette[i])
+  
+}
+
+
+# bedg2pergViz <- function (df, gr_df, format_f="bedGraph") {
+#   grps <- as.character(gr_df[[setdiff(colnames(gr_df), 'sample')]])
+#   
+#   r <- lapply(unique(grps),
+#               function(g) {
+#                 gr_samps <- grps %in% g
+#                 gr_files <- df$path[gr_samps]
+#                 
+#                 lapply(gr_files, function (bedg) {             
+#                   id <- gsub(".+tr_(\\d+)(_.+$)", "\\1", bedg)
+#                   bed_GR <- import(bedg, format = format_f)
+#                   data <- read.table (bedg)
+#                   min_start <- min(data$V2)
+#                   max_end <- max(data$V3)
+# 
+#                   if (g_min_start > min_start) { g_min_start <<- min_start }
+#                   if (g_max_end < max_end) { g_max_end <<- max_end }
+# 
+# #                   return (data$V4) })
+#                 return (bed_GR) })
+#               })
+#   
+#   names(r) <- unique(grps)
+#   return (r)
+# }
+
+# l_gr_annotation_tr_bg <- bed2pergViz (bg2v, exp_info, "bedGraph") 
 
 list_gr <- list()
 
@@ -181,35 +231,6 @@ o_tr <-OverlayTrack(list_gr)
 ###########################del
 
 
-l_gr_annotation_tr_bed <- bed2pergViz (b2v, exp_info)
-
-list_all <- list()
-cb_palette <- c("#999999", "#E69F00", "#56B4E9",
-                "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-# "lightblue", "darkblue",
-for (i in 1:length(l_gr_annotation_tr_bed)){
-  list_gr <- lapply (l_gr_annotation_tr_bed[[i]], function (l, color=cb_palette[i]) { 
-    displayPars(l) <- list(fill=color, background.title = color, col=NULL) 
-    return (l)
-  })
-  
-  list_all <- append(list_all, list_gr)  
-}
-
-l_gr_annotation_tr_bg <- bed2pergViz (bg2v, exp_info, "bedGraph") 
-# l_gr_annotation_tr_bg[[1]][[2]]
-list_all_bg <- list()
-
-for (i in 1:length(l_gr_annotation_tr_bg)){
-  list_gr_bg <- lapply (l_gr_annotation_tr_bg[[i]], function (l, color=cb_palette[i]) { 
-#     displayPars(l) <- list(col=color, type="l", ylim = c(0, 0.5)) 
-    displayPars(l) <- list(type="heatmap", ylim = c(0, 0.5),
-                           gradient=c('white','blue')) 
-    return (l)
-  })
-  #   displayPars(annotation_tr) <- list(fill=cb_palette[i], background.title = cb_palette[i])
-  list_all_bg <- append(list_all_bg, list_gr_bg)  
-}
 
 # unlist (l_gr_annotation_tr_bg[[1]])
 # o_tr<- OverlayTrack(list_all_bg)
