@@ -33,6 +33,8 @@ unique(exp_info$condition)
 # grps
 g_min_start <- 100000000
 g_max_end <- -100000000
+min_v <- 0
+max_v <- 0
 
 bed2pergViz <- function (df, gr_df, format_f="BED") {
   grps <- as.character(gr_df[[setdiff(colnames(gr_df), 'sample')]])
@@ -45,17 +47,16 @@ bed2pergViz <- function (df, gr_df, format_f="BED") {
            lapply(gr_files, function (bed) {             
              id <- gsub(".+tr_(\\d+)(_.+$)", "\\1", bed)
              bed_GR <- import(bed, format = format_f)
+             min_start <- min(start(bed_GR))
+             max_end <- max(end(bed_GR))
              
-             if (format_f == "BED") {
-               min_start <- min(start(bed_GR))
-               max_end <- max(end(bed_GR))
-               
+             if (format_f == "BED") {                              
                tr <- AnnotationTrack(bed_GR, name = paste ("", id, sep=""))#, fill=col_ctrl, background.title = col_ctrl)               
              }
              
              if (format_f == "bedGraph") {
-               min_start <- min(bed_GR$score)
-               max_end <- max(bed_GR$score)
+               min_v <<- floor (min(bed_GR$score))
+               max_v <<- ceiling (max(bed_GR$score))
 #                scores <- as.vector(mcols(bed_GR))
 #                tr <- DataTrack(bed_GR, name = paste ("", id, sep=""))#, fill=col_ctrl, background.title = col_ctrl)               
                tr <- bed_GR
@@ -87,59 +88,19 @@ for (i in 1:length(l_gr_annotation_tr_bed)){
 l_gr_annotation_tr_bg <- bed2pergViz (bg2v, exp_info, "bedGraph") 
 list_all_bg <- list()
 
-# min(l_gr_annotation_tr_bg[[1]][[1]]$score)
-
 for (i in 1:length(l_gr_annotation_tr_bg)){
-#   list_gr_bg <- lapply (l_gr_annotation_tr_bg[[i]], function (l, color=cb_palette[i]) { 
-    #     displayPars(l) <- list(col=color, type="l", ylim = c(0, 0.5)) 
     for (j in 1:length(l_gr_annotation_tr_bg[[i]])){
       GR <- l_gr_annotation_tr_bg[[i]][[j]]
-#       print (names (l_gr_annotation_tr_bg[[i]][j]))
+
       id <- gsub(".+tr_(\\d+)(_.+$)", "\\1", names (l_gr_annotation_tr_bg[[i]][j]))
       d_tr <- DataTrack(GR, name = id, background.title = cb_palette[i],
                         type="heatmap", ylim = c(0, 0.5),
                         gradient=c('white','blue'))#, fill=col_ctrl, background.title = col_ctrl) 
       
-#       list_all_bg <- append(list_all_bg, list_gr_bg)   
       list_all_bg <- append (list_all_bg, d_tr)
     }
-    
-    
-#     displayPars(l) <- list(type="heatmap", ylim = c(0, 0.5),
-#                            gradient=c('white','blue')) 
-   
-  #   displayPars(annotation_tr) <- list(fill=cb_palette[i], background.title = cb_palette[i])
   
 }
-
-
-# bedg2pergViz <- function (df, gr_df, format_f="bedGraph") {
-#   grps <- as.character(gr_df[[setdiff(colnames(gr_df), 'sample')]])
-#   
-#   r <- lapply(unique(grps),
-#               function(g) {
-#                 gr_samps <- grps %in% g
-#                 gr_files <- df$path[gr_samps]
-#                 
-#                 lapply(gr_files, function (bedg) {             
-#                   id <- gsub(".+tr_(\\d+)(_.+$)", "\\1", bedg)
-#                   bed_GR <- import(bedg, format = format_f)
-#                   data <- read.table (bedg)
-#                   min_start <- min(data$V2)
-#                   max_end <- max(data$V3)
-# 
-#                   if (g_min_start > min_start) { g_min_start <<- min_start }
-#                   if (g_max_end < max_end) { g_max_end <<- max_end }
-# 
-# #                   return (data$V4) })
-#                 return (bed_GR) })
-#               })
-#   
-#   names(r) <- unique(grps)
-#   return (r)
-# }
-
-# l_gr_annotation_tr_bg <- bed2pergViz (bg2v, exp_info, "bedGraph") 
 
 list_gr <- list()
 
@@ -161,92 +122,6 @@ names(list_gr) <- names(l_gr_annotation_tr_bg)
 list_gr <- rev(list_gr)
 o_tr <-OverlayTrack(list_gr)
 
-# 
-# # l_gr_annotation_tr_bg$control$tr_1_dt_food_sc
-# 
-# list_all_bg <- list()
-# 
-# for (i in 1:length(l_gr_annotation_tr_bg)){
-# #   print (names (l_gr_annotation_tr_bg[[i]]))
-#   
-#   list_gr_bg <- sapply (l_gr_annotation_tr_bg[[i]], y <-function (l, color=cb_palette[i]) { 
-# #         displayPars(l) <- list(col=color, type="l", ylim = c(0, 0.5)) 
-#     
-#     displayPars(l) <- list(type="heatmap", ylim = c(0, 0.5),
-#                            gradient=c('white','blue')) 
-# #     return (as.vector(l))
-#     return (l)
-#   })
-
-#   print (list_gr_bg)
-#   df_all_bg <- as.data.frame(list_gr_bg) # diferente medida
-#   print(df_all_bg)
-#   print(head (list_gr_bg))
-  #   displayPars(annotation_tr) <- list(fill=cb_palette[i], background.title = cb_palette[i])
-#   list_all_bg <- append(list_all_bg, list_gr_bg)  
-# }
-
-# names(list_all_bg)
-# as.data.frame(list_all_bg)
-# list_all_bg[[1]]
-# 
-# df_bedGr_case
-# gr <- as(cov, "GRanges")
-# new_cv <- coverage(gr, weight="score", width=your_seqinfo)
-# coverage(df_bedGr_case$m10, weight="score", width=your_seqinfo)
-# 
-# coverage(l_gr_annotation_tr_bg[[1]][[2]],weight="score", width=NULL)
-# length (l_gr_annotation_tr_bg[[1]][[2]])
-# length (l_gr_annotation_tr_bg[[1]][[1]])
-# setdiff(l_gr_annotation_tr_bg[[1]][[1]],l_gr_annotation_tr_bg[[1]][[2]] )
-# 
-# l_gr_annotation_tr_bg[[2]][[2]][!(l_gr_annotation_tr_bg[[2]][[2]] %over% l_gr_annotation_tr_bg[[2]][[1]])]
-# 
-# joinGranges<- c(l_gr_annotation_tr_bg[[1]][[1]],l_gr_annotation_tr_bg[[1]][[2]])
-# 
-# joinDataTrack<-DataTrack(joinGranges, name = "midbody speed (microns/s)", type="heatmap",  
-#                     gradient=c('blue', 'white','red'),
-# #                     groups = c("ctrl", "case"), col=c(col_case, col_ctrl), 
-#                     legend=FALSE)
-# 
-# plotTracks(joinDataTrack, from =1, to =2000)
-# head (list_all)
-# class(l_gr_annotation_tr_bg[[1]][[2]])
-# 
-# ######del
-# scores_bedGr_ctrl <- sapply (ctrl.mice.bedGraph.files, y <- function (x) { data <- read.table (x)                                                      
-#                                                                            id <- gsub("(^tr_)([^.]+)(_dt.+$)", "\\2", x)                                                                   
-#                                                                            return (data$V4)
-# })
-# 
-# df_bedGr_ctrl <- data.frame(scores_bedGr_ctrl)
-# head (df_bedGr_ctrl)
-# names(df_bedGr_ctrl) <- paste ("m", gsub(".+tr_(\\d+)(_.+$)", "\\1", ctrl.mice.bedGraph.files), sep="")
-# ## Reverse order to make them appear from 1 to 18
-# df_bedGr_ctrl_ordered <- df_bedGr_ctrl[ , rev(mixedsort(names(df_bedGr_ctrl)))]
-# colnames(df_bedGr_ctrl_ordered)
-# ctrl_bedg_GR <- GRanges()
-# ctrl_bedg_GR <- import(ctrl.mice.bedGraph.files[[1]], format = "bedGraph")
-# mcols(ctrl_bedg_GR) <- df_bedGr_ctrl_ordered
-###########################del
-
-
-
-# unlist (l_gr_annotation_tr_bg[[1]])
-# o_tr<- OverlayTrack(list_all_bg)
-
-# plotTracks(list_all_bg[[1]], from=900,
-#                       to=1500)
-# class (l_gr_annotation_tr_bedg)
-# class(list_all)
-# list_all
-# warnings()
-# plotTracks(list_all, from=1,
-#            to=10000, shape = "box")
-
-# min_t <- floor (min (df.data_bed$start))
-# max_t <- ceiling (max(df.data_bed$end))
-
 g_tr <- GenomeAxisTrack()
 
 # Define server logic required to plot various variables against mpg
@@ -264,7 +139,12 @@ shinyServer(function(input, output) {
     sliderInput("windowsize", "Windowsize:", min = min(g_max_end, 1000), max = max(g_max_end, 1000000), 
                 value =min(g_max_end, 1000), step = min(g_max_end, 300))
   })
-  
+
+  output$bedGraphRange <- renderUI({
+    sliderInput("bedGraphRange", "Range bedgraph:", 
+                min = min_v, max = max_v, value = c(0, 0.5), step= 0.1)
+  }) 
+
   output$plotbed <- renderPlot({
     if(length(input$windowsize)==0){
       return(NULL)
@@ -275,6 +155,7 @@ shinyServer(function(input, output) {
 #       pt <- plotTracks(c(g_tr, list_all, o_tr),
 #                          from=pos(), to=pos() + input$windowsize,
                          from=input$tpos, to=input$tpos+ input$windowsize,
+                         ylim=c(input$bedGraphRange[1], input$bedGraphRange[2]),
                          shape = "box", stacking = "dense")
 
       return(pt)
