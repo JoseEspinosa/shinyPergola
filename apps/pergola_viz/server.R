@@ -63,36 +63,54 @@ bed2pergViz <- function (df, gr_df, format_f="BED") {
   return (r)
 }
 
+bedg2pergViz <- function (df, gr_df, format_f="bedGraph") {
+  grps <- as.character(gr_df[[setdiff(colnames(gr_df), 'sample')]])
+  
+  r <- lapply(unique(grps),
+              function(g) {
+                gr_samps <- grps %in% g
+                gr_files <- df$path[gr_samps]
+                
+                lapply(gr_files, function (bedg) {             
+                  id <- gsub(".+tr_(\\d+)(_.+$)", "\\1", bedg)
+                  bed_GR <- import(bedg, format = format_f)
+                  data <- read.table (bedg)
+                  min_start <- min(data$V2)
+                  max_end <- max(data$V3)
 
-#####################
-# bedg2pergViz <- function (df, gr_df, format_f="bedGraph") {
-#   grps <- as.character(gr_df[[setdiff(colnames(gr_df), 'sample')]])
-#   
-#   r <- lapply(unique(grps),
-#               function(g) {
-#                 gr_samps <- grps %in% g
-#                 gr_files <- df$path[gr_samps]
-#                 
-#                 lapply(gr_files, function (bedg) {             
-#                   id <- gsub(".+tr_(\\d+)(_.+$)", "\\1", bedg)
-#                   bed_GR <- import(bedg, format = format_f)
-#                   data <- read.table (bedg)
-#                   min_start <- min(data$V2)
-#                   max_end <- max(data$V3)
-# 
-#                   if (g_min_start > min_start) { g_min_start <<- min_start }
-#                   if (g_max_end < max_end) { g_max_end <<- max_end }
-# 
-# #                   return (data$V4) })
-#                 return (bed_GR) })
-#               })
-#   
-#   names(r) <- unique(grps)
-#   return (r)
-# }
+                  if (g_min_start > min_start) { g_min_start <<- min_start }
+                  if (g_max_end < max_end) { g_max_end <<- max_end }
 
-# l_gr_annotation_tr_bg <- bed2pergViz (bg2v, exp_info, "bedGraph") 
-# # names(l_gr_annotation_tr_bg[[1]])
+#                   return (data$V4) })
+                return (bed_GR) })
+              })
+  
+  names(r) <- unique(grps)
+  return (r)
+}
+
+l_gr_annotation_tr_bg <- bedg2pergViz (bg2v, exp_info, "bedGraph") 
+
+list_gr <- list()
+
+for (i in 1:length(l_gr_annotation_tr_bg)){
+  GR <- GRanges()
+  
+  for (j in 1:length(l_gr_annotation_tr_bg[[i]])){
+    GR <- append(GR, l_gr_annotation_tr_bg[[i]][[j]])
+  }
+  
+  dt <- DataTrack(GR, name = "mean intake (mg)", type=c("a"), #, "p"))
+            col=cb_palette[i],
+            ylim = c(0, 1), legend=FALSE)
+  
+  list_gr[[i]] <- dt
+}
+
+names(list_gr) <- names(l_gr_annotation_tr_bg)
+list_gr <- rev(list_gr)
+o_tr <-OverlayTrack(list_gr)
+
 # 
 # # l_gr_annotation_tr_bg$control$tr_1_dt_food_sc
 # 
@@ -163,13 +181,6 @@ bed2pergViz <- function (df, gr_df, format_f="BED") {
 ###########################del
 
 
-
-
-# DataTrack(n2_bedg_GR, name = "midbody speed (microns/s)", type="heatmap", ylim=c(-400, 400), 
-#           gradient=c('blue', 'white','red'),
-#           #groups = group_tr_rev, col=c(col_case, col_ctrl), 
-#           legend=FALSE)
-
 l_gr_annotation_tr_bed <- bed2pergViz (b2v, exp_info)
 
 list_all <- list()
@@ -191,9 +202,9 @@ list_all_bg <- list()
 
 for (i in 1:length(l_gr_annotation_tr_bg)){
   list_gr_bg <- lapply (l_gr_annotation_tr_bg[[i]], function (l, color=cb_palette[i]) { 
-    displayPars(l) <- list(col=color, type="l", ylim = c(0, 0.5)) 
-#     displayPars(l) <- list(type="heatmap", ylim = c(0, 0.5),
-#                            gradient=c('white','blue')) 
+#     displayPars(l) <- list(col=color, type="l", ylim = c(0, 0.5)) 
+    displayPars(l) <- list(type="heatmap", ylim = c(0, 0.5),
+                           gradient=c('white','blue')) 
     return (l)
   })
   #   displayPars(annotation_tr) <- list(fill=cb_palette[i], background.title = cb_palette[i])
@@ -201,7 +212,7 @@ for (i in 1:length(l_gr_annotation_tr_bg)){
 }
 
 # unlist (l_gr_annotation_tr_bg[[1]])
-o_tr<- OverlayTrack(list_all_bg)
+# o_tr<- OverlayTrack(list_all_bg)
 
 # plotTracks(list_all_bg[[1]], from=900,
 #                       to=1500)
@@ -216,13 +227,6 @@ o_tr<- OverlayTrack(list_all_bg)
 # max_t <- ceiling (max(df.data_bed$end))
 
 g_tr <- GenomeAxisTrack()
-# rm(g_tr)
-# plotTracks(c(g_tr,at_ctrl))
-# at_ctrl
-# plotTracks (c(gtrack, at_ctrl), shape = "box", rot.title=0, from=0, to=1000)
-# plotTracks (c(g_tr, at_ctrl), shape = "box", rot.title=0, from=0, to=1000)
-
-
 
 # Define server logic required to plot various variables against mpg
 shinyServer(function(input, output) {
@@ -246,8 +250,8 @@ shinyServer(function(input, output) {
     }
     else{
 
-#         pt <- plotTracks(c(g_tr, list_all, list_all_bg), 
-      pt <- plotTracks(c(g_tr, list_all, o_tr),
+        pt <- plotTracks(c(g_tr, list_all, list_all_bg, o_tr), 
+#       pt <- plotTracks(c(g_tr, list_all, o_tr),
 #                          from=pos(), to=pos() + input$windowsize,
                          from=input$tpos, to=input$tpos+ input$windowsize,
                          shape = "box", stacking = "dense")
