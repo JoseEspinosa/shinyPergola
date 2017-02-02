@@ -120,12 +120,15 @@ for (i in 1:length(l_gr_annotation_tr_bg)){
 
 names(list_gr) <- names(l_gr_annotation_tr_bg)
 list_gr <- rev(list_gr)
+
 o_tr <-OverlayTrack(list_gr)
 
 g_tr <- GenomeAxisTrack()
 
 # Define server logic required to plot various variables against mpg
 shinyServer(function(input, output) {
+ 
+  
   output$genomicPositionSelect <- renderUI({
 #     sliderInput( "tpos", "Time Point:", min = 10, max = g_max_end - 10, value = g_min_start + 10 )
     sliderInput( "tpos", "Time Point:", min = 0, max = g_max_end - 10, value = 0 )
@@ -136,7 +139,7 @@ shinyServer(function(input, output) {
 #   })
   
   output$windowsize <- renderUI({                                                             
-    sliderInput("windowsize", "Windowsize:", min = min(g_max_end, 1000), max = max(g_max_end, 1000000), 
+    sliderInput("windowsize", "Window size:", min = min(g_min_start, 1000), max = max(g_max_end, 1000000), 
                 value =min(g_max_end, 1000), step = min(g_max_end, 300))
   })
 
@@ -144,24 +147,59 @@ shinyServer(function(input, output) {
     sliderInput("bedGraphRange", "Range bedgraph:", 
                 min = min_v, max = max_v, value = c(0, 0.5), step= 0.1)
   }) 
+  
+  output$boxplot <- renderUI({                                                             
+    checkboxInput("boxplot", "Add boxplot:", FALSE)
+  })
+  
+  #  boxplot datatrack
+  boxplot_dt <- reactive({
+    if(!is.null(input$boxplot) && input$boxplot == TRUE) {
+      for (i in 1:length(list_gr)){
+        displayPars(list_gr[[1]]) <- list(type=c("boxplot"))
+      }
+      
+      o_tr_boxplot <-OverlayTrack(list_gr)
+      
+#       IdeogramTrack(genome=input$ucscgen, chromosome=input$chr,
+#                     showId=TRUE, showBandId=TRUE)
+      o_tr_boxplot
+    }
+  })
+
+  output$text1 <- renderText({ 
+    paste (as.character (input$boxplot))
+  })
 
   output$plotbed <- renderPlot({
     if(length(input$windowsize)==0){
       return(NULL)
     }
     else{
-
+      if (input$boxplot==FALSE){
         pt <- plotTracks(c(g_tr, list_all, list_all_bg, o_tr), 
-#       pt <- plotTracks(c(g_tr, list_all, o_tr),
-#                          from=pos(), to=pos() + input$windowsize,
+                         #       pt <- plotTracks(c(g_tr, list_all, o_tr),
+                         #                          from=pos(), to=pos() + input$windowsize,
+                         from=input$tpos, to=input$tpos+ input$windowsize,
+                         ylim=c(input$bedGraphRange[1], input$bedGraphRange[2]),
+                         shape = "box", stacking = "dense")        
+      }
+      else {
+        
+        pt <- plotTracks(c(g_tr, list_all, list_all_bg, o_tr, boxplot_dt()), 
+                         #       pt <- plotTracks(c(g_tr, list_all, o_tr),
+                         #                          from=pos(), to=pos() + input$windowsize,
                          from=input$tpos, to=input$tpos+ input$windowsize,
                          ylim=c(input$bedGraphRange[1], input$bedGraphRange[2]),
                          shape = "box", stacking = "dense")
-
+      }
+       
       return(pt)
     }
   })
 })
+
+
 
 
 

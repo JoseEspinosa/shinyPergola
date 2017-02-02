@@ -33,7 +33,8 @@ shinyUI(
                        uiOutput("windowsize"), # server.R
                        uiOutput("bedGraphRange"),
                        uiOutput("idSelect"),
-                       uiOutput("genomicPositionSelect")
+                       uiOutput("genomicPositionSelect"),
+                       uiOutput("boxplot")
       )#,
 #       conditionalPanel(condition="input.tabs_p=='About'",
 #                        h4("Introduction") 
@@ -48,7 +49,8 @@ shinyUI(
         tabPanel("Browser",
                  fluidRow(column(12,
                                  plotOutput("plotbed", height=600),
-                                 plotOutput("envInfo", height=20))                
+                                 plotOutput("envInfo", height=20)),
+                                 textOutput("text1")
                  )),        
 #         tabPanel("Plots",
 #                  
