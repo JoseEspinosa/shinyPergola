@@ -78,7 +78,7 @@ list_all <- list()
 
 for (i in 1:length(l_gr_annotation_tr_bed)){
   list_gr <- lapply (l_gr_annotation_tr_bed[[i]], function (l, color=cb_palette[i]) { 
-    displayPars(l) <- list(fill=color, background.title = color, col=NULL) 
+    displayPars(l) <- list(fill=color, background.title = color, col=NULL) # coll null for boxes lines
     return (l)
   })
   
@@ -86,6 +86,10 @@ for (i in 1:length(l_gr_annotation_tr_bed)){
 }
 
 l_gr_annotation_tr_bg <- bed2pergViz (bg2v, exp_info, "bedGraph") 
+
+
+# setdiff(l_gr_annotation_tr_bg[[1]][[1]], l_gr_annotation_tr_bg[[1]][[2]])
+# subsetByOverlaps (l_gr_annotation_tr_bg[[1]][[1]], l_gr_annotation_tr_bg[[1]][[2]])
 list_all_bg <- list()
 
 for (i in 1:length(l_gr_annotation_tr_bg)){
@@ -103,25 +107,81 @@ for (i in 1:length(l_gr_annotation_tr_bg)){
 }
 
 list_gr <- list()
+vector_gr <- c()
+group_lab <- c()
+color_by_tr <- c()
+# GR_all <- GRanges()
 
 for (i in 1:length(l_gr_annotation_tr_bg)){
   GR <- GRanges()
   
+  group_lab <- append(group_lab, rep (names(l_gr_annotation_tr_bg)[i], length(l_gr_annotation_tr_bg[[i]])))
+  color_by_tr <- append(color_by_tr, cb_palette[i], length(l_gr_annotation_tr_bg[[i]]))
+  
   for (j in 1:length(l_gr_annotation_tr_bg[[i]])){
     GR <- append(GR, l_gr_annotation_tr_bg[[i]][[j]])
+#     GR_all <- append(GR_all, l_gr_annotation_tr_bg[[i]][[j]])
   }
   
   dt <- DataTrack(GR, name = "mean intake (mg)", type=c("a"), #, "p"))
             col=cb_palette[i],
             ylim = c(0, 1), legend=FALSE)
-  
+#   
   list_gr[[i]] <- dt
+  vector_gr <- c(vector_gr, GR)
 }
 
+# GR_all
 names(list_gr) <- names(l_gr_annotation_tr_bg)
 list_gr <- rev(list_gr)
 
+for (i in 1:length(list_gr)){
+#   displayPars(list_gr[[i]]) <- list(type=c("boxplot"), fill=cb_palette[i])
+  displayPars(list_gr[[i]]) <- list(type=c("a"), col=cb_palette[i])
+}
+ 
+o_tr_boxplot <-OverlayTrack(list_gr)
+# plotTracks  (o_tr_boxplot, name = "mean intake (mg)", #type=c("boxplot"), #, "p"))
+#                                 col=c("red", "blue"),
+#                                ylim = c(0, 1), legend=TRUE, from=1, to=5000)
+
+
 o_tr <-OverlayTrack(list_gr)
+
+### Same startint and ending coordinates to create a single GRanges object with all the
+### bedgraph files as metadatacolumns 
+## with GRanges. 
+## To obtain the values of the bedgraph files they have to be first in subsetByOverlaps
+## and common intervals the second
+# mcols(subsetByOverlaps (l_gr_annotation_tr_bg[[1]][[2]], common_intervals))
+
+l_all_common_int <- list() 
+common_intervals <- Reduce(subsetByOverlaps, c(unlist (l_gr_annotation_tr_bg))) 
+
+for (i in 1:length(l_gr_annotation_tr_bg)){  
+  l_gr_common_int <- sapply (l_gr_annotation_tr_bg[[i]], function (l, common_GR=common_intervals) { 
+    mcol <- mcols(subsetByOverlaps (l, common_intervals)) 
+    return (mcol)
+#     return (data.frame(mcol))
+  })
+  
+  l_all_common_int <- cbind(l_all_common_int, l_gr_common_int)  
+}
+
+df <- as.data.frame (unlist(l_all_common_int))
+
+# This was not working problably because number of rows was not correctly set
+# df <- data.frame(matrix(unlist(l_all_common_int), nrow=length(common_intervals), byrow=T))
+names(df) <- paste ("id_", gsub(".+tr_(\\d+)(_.+$)", "\\1", names (unlist(l_gr_annotation_tr_bg))), sep="")
+
+gr_common_intervals <- GRanges()
+gr_common_intervals <- common_intervals
+mcols(gr_common_intervals) <- df
+
+common_bedg_dt_boxPlot <- DataTrack(gr_common_intervals, name = "mean intake (mg)", type="boxplot",
+                                    showSampleNames = TRUE, #ylim = c(0, 0.5),                                     
+                                    groups = group_lab, col=color_by_tr,
+                                    legend=FALSE)
 
 g_tr <- GenomeAxisTrack()
 
@@ -140,7 +200,7 @@ shinyServer(function(input, output) {
   
   output$windowsize <- renderUI({                                                             
     sliderInput("windowsize", "Window size:", min = min(g_min_start, 1000), max = max(g_max_end, 1000000), 
-                value =min(g_max_end, 1000), step = min(g_max_end, 300))
+                value =min(g_max_end, 3000), step = min(g_max_end, 300))
   })
 
   output$bedGraphRange <- renderUI({
@@ -153,10 +213,12 @@ shinyServer(function(input, output) {
   })
   
   #  boxplot datatrack
+  # it is overlap and then is very difficult to see anything
   boxplot_dt <- reactive({
     if(!is.null(input$boxplot) && input$boxplot == TRUE) {
       for (i in 1:length(list_gr)){
-        displayPars(list_gr[[1]]) <- list(type=c("boxplot"))
+        displayPars(list_gr[[i]]) <- list(type=c("boxplot"), fill=cb_palette[i])
+#           list(type=c("boxplot"), fill=cb_palette[i])
       }
       
       o_tr_boxplot <-OverlayTrack(list_gr)
@@ -164,6 +226,7 @@ shinyServer(function(input, output) {
 #       IdeogramTrack(genome=input$ucscgen, chromosome=input$chr,
 #                     showId=TRUE, showBandId=TRUE)
       o_tr_boxplot
+      common_bedg_dt_boxPlot
     }
   })
 
