@@ -1,3 +1,16 @@
+############################################################################################
+### Jose A Espinosa. NPMMD/CB-CRG Group. Jan 2017                                        ###
+############################################################################################
+### Shiny app to show pergola data using Gviz                                            ###
+### server.R                                                                             ###
+############################################################################################
+###                                                                                      ###
+############################################################################################
+
+# library(shiny)
+# library("Gviz")
+# library('GenomicRanges')
+# library ("rtracklayer")
 
 col_gr_1 <- "darkblue"
 col_gr_2 <- "brown"
@@ -11,23 +24,26 @@ base_dir <- "/Users/jespinosa/git/shinyPergola/data"
 
 # data_dir <- dir(file.path(base_dir,"bed4test"))
 # data_dir <- file.path(base_dir,"bed4test")
-# exp_design_f <- "exp_info_test.txt"
 data_dir <- file.path(base_dir,"bed4test_all")
-exp_design_f <- "exp_info.txt"
+# data_dir <- file.path(base_dir,"worm_data_unc16vsN2")
 
-b2v <- s2c <- exp_info <- read.table(file.path(base_dir, exp_design_f), header = TRUE, stringsAsFactors=FALSE)
+# exp_design_f <- "exp_info_test.txt"
+exp_design_f <- "exp_info.txt"
+exp_design_f <- "exp_info_worm.txt"
+
+b2v <- exp_info <- read.table(file.path(base_dir, exp_design_f), header = TRUE, stringsAsFactors=FALSE)
 
 # exp_info$sample
 kal_dirs <- perg_bed_files <- sapply(exp_info$sample, function(id) file.path(data_dir, paste(id, ".bed", sep="")))
 
 # s2c <- exp_info <- read.table(file.path(base_dir, "exp_info_test.txt"), header = TRUE, stringsAsFactors=FALSE)
-b2v <- s2c <- dplyr::mutate(b2v, path = perg_bed_files)
+b2v <- dplyr::mutate(b2v, path = perg_bed_files)
 # s2c
 
 kal_dirs <- perg_bedg_files <- sapply(exp_info$sample, function(id) file.path(data_dir, paste(id, ".bedGraph", sep="")))
 
-bg2v <- s2c <- exp_info <- read.table(file.path(base_dir, exp_design_f), header = TRUE, stringsAsFactors=FALSE)
-bg2v <- s2c <- dplyr::mutate(bg2v, path = perg_bedg_files)
+bg2v <- exp_info <- read.table(file.path(base_dir, exp_design_f), header = TRUE, stringsAsFactors=FALSE)
+bg2v <- dplyr::mutate(bg2v, path = perg_bedg_files)
 
 unique(exp_info$condition)
 # grps
@@ -187,7 +203,7 @@ common_bedg_dt <- DataTrack(gr_common_intervals, name = "mean intake (mg)", type
                                     showSampleNames = TRUE, #ylim = c(0, 0.5),                                     
                                     groups = group_lab, col=color_by_tr,
                                     legend=FALSE)
-
+# plotTracks( common_bedg_dt)
 # common_bedg_dt_boxPlot <- DataTrack(gr_common_intervals, name = "mean intake (mg)", type="a",
 #                   showSampleNames = TRUE, #ylim = c(0, 0.5),                                     
 #                   groups = group_lab, col=color_by_tr,

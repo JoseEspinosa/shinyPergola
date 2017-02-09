@@ -12,7 +12,10 @@
 # Running the app
 # runApp ("/Users/jespinosa/git/shinyPergola/apps/minPhenBrowser")
 
-library(shiny)
+# library(shiny)
+# library("Gviz")
+# library('GenomicRanges')
+# library ("rtracklayer")
 
 shinyUI(
   fluidPage(
